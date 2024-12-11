@@ -9,6 +9,7 @@ import httpx
 import time
 
 """ ⬇️ Broker Setup ⬇️ """
+# Schwab API Docs: https://schwab-py.readthedocs.io/en/latest/getting-started.html
 '''
 Step 1: Set up the environment information
 '''
