@@ -40,19 +40,13 @@ if __name__ == '__main__':
         cash = schwab.get_cash_balance()
 
         print(f"Current cash balance: ${cash:,.2f}")
-        for position in positions:
-            print(f"Position: {position.symbol}, Quantity: {position.quantity}, "
-                  f"P/L: ${position.unrealized_pl:,.2f}")
+        print("Current positions:", positions)
 
         # Place a market order
         market_order = schwab.market_buy(stock='AAPL', quantity=100, price=0.0)
 
         # Place a limit order in extended hours
         limit_order = schwab.limit_buy(stock='MSFT', quantity=50, price=300.00)
-
-        # Check order status
-        market_order_status = schwab.get_order_status(market_order.order_id)
-        print(f"Market order status: {market_order_status.status}")
 
     except Exception as e:
         print(f"An error occurred: {e}")

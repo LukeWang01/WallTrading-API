@@ -44,14 +44,14 @@ class SchwabBroker(BaseBroker):
         while self.connection_attempts < self.max_attempts:
             try:
                 self.client = easy_client(api_key=SCHWAB_APP_KEY, app_secret=SCHWAB_SECRET,
-                                    callback_url=SCHWAB_CALLBACK_URL, token_path=SCHWAB_TOKEN_PATH,
-                                    max_token_age=60*60*24*6.5)
+                                          callback_url=SCHWAB_CALLBACK_URL, token_path=SCHWAB_TOKEN_PATH,
+                                          max_token_age=60 * 60 * 24 * 6.5)
                 self.account_hash = self._get_account_hash()[1]
                 self.connected = True
                 self.connection_attempts = 0
                 self.logger.info("Successfully connected to Schwab")
                 return True
-            
+
             except Exception as e:
                 self.connection_attempts += 1
                 self.logger.error(
@@ -61,7 +61,7 @@ class SchwabBroker(BaseBroker):
 
         self.logger.error("Failed to connect to Schwab after maximum attempts")
         return False
-    
+
     def _get_account_hash(self):
         resp = self.client.get_account_numbers()
         if resp.status_code != httpx.codes.OK:
@@ -73,13 +73,13 @@ class SchwabBroker(BaseBroker):
             (item['hashValue'] for item in resp.json() if item['accountNumber'] == SCHWAB_ACCOUNT_NUMBER),
             None
         )
-        
+
         if account_hash:
             return resp.status_code, account_hash
         else:
             self.logger.error('Trader: Get Account Hash failed: wrong account number')
             print("Trader: Get Account Hash failed: wrong account number")
-            return  -1, None
+            return -1, None
 
     def get_account_info(self):
         resp = self.client.get_account(self.account_hash)
@@ -88,11 +88,12 @@ class SchwabBroker(BaseBroker):
             self.logger.error(f"Trader: Get Account Info failed: {resp.json()['message']}")
             print(f"Trader: Get Account Info failed: {resp.json()['message']}")
             return resp.status_code, resp.json()['message']
-        
+
         account_info = resp.json()
-    
+
         if account_info['securitiesAccount']['type'] == 'CASH':
-            cash = account_info['securitiesAccount']['currentBalances']['totalCash'] - account_info['securitiesAccount']['currentBalances']['unsettledCash']
+            cash = account_info['securitiesAccount']['currentBalances']['totalCash'] - \
+                   account_info['securitiesAccount']['currentBalances']['unsettledCash']
         elif account_info['securitiesAccount']['type'] == 'MARGIN':
             cash = account_info['securitiesAccount']['currentBalances']['cashBalance']
         total_assets = account_info['securitiesAccount']['currentBalances']['liquidationValue']
@@ -158,10 +159,10 @@ class SchwabBroker(BaseBroker):
     def limit_sell(self, stock: str, quantity: int, price: str):
         if FILL_OUTSIDE_MARKET_HOURS:
             order = equity_sell_limit(stock, quantity, price).set_duration(Duration.GOOD_TILL_CANCEL).set_session(
-                    Session.SEAMLESS).build()
+                Session.SEAMLESS).build()
         else:
             order = equity_sell_limit(stock, quantity, price).set_duration(Duration.GOOD_TILL_CANCEL).set_session(
-                    Session.NORMAL).build()
+                Session.NORMAL).build()
         resp = self.client.place_order(self.account_hash, order)
 
         if resp.status_code != httpx.codes.CREATED:
@@ -174,10 +175,10 @@ class SchwabBroker(BaseBroker):
     def limit_buy(self, stock: str, quantity: int, price: str):
         if FILL_OUTSIDE_MARKET_HOURS:
             order = equity_buy_limit(stock, quantity, price).set_duration(Duration.GOOD_TILL_CANCEL).set_session(
-                    Session.SEAMLESS).build()
+                Session.SEAMLESS).build()
         else:
             order = equity_buy_limit(stock, quantity, price).set_duration(Duration.GOOD_TILL_CANCEL).set_session(
-                    Session.NORMAL).build()
+                Session.NORMAL).build()
         resp = self.client.place_order(self.account_hash, order)
 
         if resp.status_code != httpx.codes.CREATED:
@@ -190,9 +191,9 @@ class SchwabBroker(BaseBroker):
     def refresh_token(self):
         try:
             client_from_login_flow(api_key=SCHWAB_APP_KEY, app_secret=SCHWAB_SECRET,
-                                    callback_url=SCHWAB_CALLBACK_URL, token_path=SCHWAB_TOKEN_PATH,
-                                    requested_browser=None, callback_timeout=300)
-        except:
-            print('Failed to fetch a token using a web browser, falling back to the manual flow')
+                                   callback_url=SCHWAB_CALLBACK_URL, token_path=SCHWAB_TOKEN_PATH,
+                                   requested_browser=None, callback_timeout=300)
+        except Exception as e:
+            print('Failed to fetch a token using a web browser, falling back to the manual flow, error:', e)
             client_from_manual_flow(api_key=SCHWAB_APP_KEY, app_secret=SCHWAB_SECRET,
                                     callback_url=SCHWAB_CALLBACK_URL, token_path=SCHWAB_TOKEN_PATH)
