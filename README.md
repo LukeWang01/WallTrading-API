@@ -5,6 +5,7 @@ Developed by: (C) 2024 LookAtWallStreet
 Dev. Team:
 - Luke
 - TBA
+- Angus
 
 Dev Version: 0.0.1
 
