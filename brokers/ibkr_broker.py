@@ -1,8 +1,34 @@
-import time
-from ib_insync import IB, Stock, MarketOrder, LimitOrder, Trade
-from typing import Dict
-
 from brokers.base_broker import BaseBroker
+from ib_insync import IB, Stock, MarketOrder, LimitOrder, Trade
+import time
+
+from env._secrete import IBKR_account_number
+
+""" ⬇️ Broker Setup ⬇️ """
+# IBKR API Docs: https://ib-insync.readthedocs.io/readme.html
+'''
+Step 1: Set up the environment information
+'''
+# Environment Variables
+CREDENTIAL = {
+        'host': 'localhost',
+        'port': 4001,  # IB Gateway or TWS port number, should be 4001 or 7497 in default
+        'client_id': 1,
+        'readonly': False
+    }
+
+'''
+Step 2: Set up the account information
+'''
+IBKR_ACCOUNT_NUMBER = IBKR_account_number  # set up the account number in the env/_secrete.py file
+
+'''
+Step 3: Set up the trading information
+'''
+# TO DO
+FILL_OUTSIDE_MARKET_HOURS = True  # enable if order fills on extended hours
+
+""" ⏫ Broker Setup ⏫ """
 
 
 class IBKRBroker(BaseBroker):
@@ -13,14 +39,14 @@ class IBKRBroker(BaseBroker):
         self.max_attempts = 3
         self.retry_delay = 5  # seconds
 
-    def connect(self, credentials: Dict) -> bool:
+    def connect(self) -> bool:
         while self.connection_attempts < self.max_attempts:
             try:
                 self.ib.connect(
-                    host=credentials.get('host', 'localhost'),
-                    port=credentials.get('port', 7497),
-                    clientId=credentials.get('client_id', 1),
-                    readonly=credentials.get('readonly', False)
+                    host=CREDENTIAL.get('host', 'localhost'),
+                    port=CREDENTIAL.get('port', 4001),
+                    clientId=CREDENTIAL.get('client_id', 1),
+                    readonly=CREDENTIAL.get('readonly', False)
                 )
                 self.connected = True
                 self.connection_attempts = 0
@@ -39,7 +65,7 @@ class IBKRBroker(BaseBroker):
 
     def get_positions(self):
         try:
-            positions = self.ib.positions()
+            positions = self.ib.positions(IBKR_ACCOUNT_NUMBER)
             self.logger.info(f"Retrieved positions: {positions}")
             return positions
         except Exception as e:
@@ -48,7 +74,7 @@ class IBKRBroker(BaseBroker):
 
     def get_cash_balance(self):
         try:
-            account_values = self.ib.accountValues()
+            account_values = self.ib.accountValues(IBKR_ACCOUNT_NUMBER)
             cash_balance = next((v.value for v in account_values if v.tag == 'CashBalance'), None)
             self.logger.info(f"Retrieved cash balance: {cash_balance}")
             return cash_balance
@@ -58,27 +84,27 @@ class IBKRBroker(BaseBroker):
 
     def get_account_info(self):
         try:
-            account_summary = self.ib.accountSummary()
+            account_summary = self.ib.accountSummary(IBKR_ACCOUNT_NUMBER)
             self.logger.info(f"Retrieved account info: {account_summary}")
             return account_summary
         except Exception as e:
             self.logger.error(f"Error retrieving account info: {e}")
             return None
 
-    def market_sell(self, stock: str, quantity: int, price: float):
+    def market_sell(self, stock: str, quantity: int):
         try:
             contract = Stock(stock, 'SMART', 'USD')
-            order = MarketOrder('sell', quantity)
+            order = MarketOrder('sell', quantity, account=IBKR_ACCOUNT_NUMBER)
             trade = self.ib.placeOrder(contract, order)
             return self._handle_trade_timeout(trade)
         except Exception as e:
             self.logger.error(f"Error placing market sell order: {e}")
             return None
 
-    def market_buy(self, stock: str, quantity: int, price: float):
+    def market_buy(self, stock: str, quantity: int):
         try:
             contract = Stock(stock, 'SMART', 'USD')
-            order = MarketOrder('buy', quantity)
+            order = MarketOrder('buy', quantity, account=IBKR_ACCOUNT_NUMBER)
             trade = self.ib.placeOrder(contract, order)
             return self._handle_trade_timeout(trade)
         except Exception as e:
@@ -88,7 +114,7 @@ class IBKRBroker(BaseBroker):
     def limit_sell(self, stock: str, quantity: int, price: float):
         try:
             contract = Stock(stock, 'SMART', 'USD')
-            order = LimitOrder('sell', quantity, price)
+            order = LimitOrder('sell', quantity, price, account=IBKR_ACCOUNT_NUMBER)
             trade = self.ib.placeOrder(contract, order)
             return self._handle_trade_timeout(trade)
         except Exception as e:
@@ -98,7 +124,7 @@ class IBKRBroker(BaseBroker):
     def limit_buy(self, stock: str, quantity: int, price: float):
         try:
             contract = Stock(stock, 'SMART', 'USD')
-            order = LimitOrder('buy', quantity, price)
+            order = LimitOrder('buy', quantity, price, account=IBKR_ACCOUNT_NUMBER)
             trade = self.ib.placeOrder(contract, order)
             return self._handle_trade_timeout(trade)
         except Exception as e:

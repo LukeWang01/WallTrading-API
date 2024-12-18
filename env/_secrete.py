@@ -13,6 +13,9 @@ Schwab_account_number = '12345678'
 Schwab_app_key = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 Schwab_secret = 'xxxxxxxxxxxxxxxx'
 
+""" IBKR trading setup """
+IBKR_account_number = 'U12345678'
+
 """ ‼️‼️‼️  please keep your password in SAFE, DO NOT SHARE ‼️‼️‼️"""
 
 # Example credentials.yml structure:
