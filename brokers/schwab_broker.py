@@ -128,9 +128,13 @@ class SchwabBroker(BaseBroker):
             return resp.status_code, data_dict
 
     def get_positions_by_ticker(self, ticker: str):
-        data = self.get_positions()
-        # TODO: Implement this method, return the qty position for the given ticker
-        pass
+        status_code, positions = self.get_positions()
+        
+        position = positions.get(ticker)
+        if position and 'longQuantity' in position:
+            return status_code, position['longQuantity']
+        else:
+            return status_code, 0.0
 
     def get_cash_balance(self):
         acct_ret, acct_info = self.get_account_info()
