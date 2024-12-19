@@ -16,12 +16,10 @@
 # https://openapi.moomoo.com/moomoo-api-doc/intro/intro.html
 
 from moomoo import *
-import schedule
 
 from brokers.base_broker import BaseBroker
 from env._secrete import MooMoo_PWD
 from utils.dataIO import logging_info
-from utils.time_tool import is_market_and_extended_hours, is_trading_day
 
 """ ⬇️ Broker Setup ⬇️ """
 '''
@@ -202,6 +200,14 @@ class MooMooFutuBroker(BaseBroker):
             self.close_context()
             return -1, data
 
+    def get_positions_by_ticker(self, ticker):
+        position_ret, position_data = self.get_positions()
+        if position_ret != RET_OK:
+            # get current position quantity
+            print('MooMoo, Get Positions by Ticker failed: ', position_data)
+            return False
+        return position_data[ticker]["qty"]
+
     def get_cash_balance(self):
         acct_ret, acct_info = self.get_account_info()
         if acct_ret == RET_OK:
@@ -210,29 +216,5 @@ class MooMooFutuBroker(BaseBroker):
             print('MooMooFutuBroker: Get Account Info and cash failed: ', acct_info)
             return False
 
-
-if __name__ == '__main__':
-    # print(get_current_time(), 'TradingBOT is running...')
-    # # Create a trader and strategy object
-    # trader = Trader()
-    # strategy = Your_Strategy(trader)
-    # print("trader and strategy objects created...")
-    #
-    # # schedule the task
-    # bot_task = schedule.Scheduler()
-    # bot_task.every().minute.at(":05").do(strategy.strategy_decision)    # please change the interval as needed
-    #
-    # # print the time every hour showing bot running...
-    # bkg_task = schedule.Scheduler()
-    # bkg_task.every().hour.at(":00").do(print_current_time)
-    #
-    # print("schedule the task...")
-    #
-    # # loop and keep the schedule running
-    # while True:
-    #     bkg_task.run_pending()
-    #     if is_market_and_extended_hours() and is_trading_day():
-    #         bot_task.run_pending()  # please handle all error in your strategy
-    #
-    #     time.sleep(1)
-    pass
+    def get_cash_balance_number_only(self):
+        return self.get_cash_balance()

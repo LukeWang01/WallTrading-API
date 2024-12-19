@@ -264,10 +264,17 @@ class WebullBroker(BaseBroker):
         unrealizedProfitLossRate = round(float(position['unrealizedProfitLossRate']) * 100, 2)
         return position
 
+    def get_positions_by_ticker(self, ticker: str):
+        # TODO: get positions by ticker
+        pass
+
     def get_cash_balance(self) -> float:
         account_info = self._webull.get_account()
         self.cash_balance = float(account_info['accountMembers'][1]['value'])
         return self.cash_balance
+
+    def get_cash_balance_number_only(self):
+        return self.get_cash_balance()
 
     def print_order_details(self, response, stock, price, qty, direction, order_type):
         if response['success']:

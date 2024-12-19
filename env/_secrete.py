@@ -4,6 +4,11 @@ Important, please don't share with the public
 
 """ ‼️‼️‼️  please keep your password in SAFE, DO NOT SHARE ‼️‼️‼️"""
 
+""" WallTrading API Username and Password """
+API_CLIENT_ID = 'your_ID'
+API_PASSWORD = 'your_Password'
+
+
 """ MooMoo trading setup """
 # trading password, 6 digits
 MooMoo_PWD = '123456'   # replace with your moomoo trading password
@@ -36,3 +41,7 @@ WEBULL:
     account_type
     device_name
 """
+
+""" Don't Change the file below """
+
+SERVER_IP = '43.153.30.74'

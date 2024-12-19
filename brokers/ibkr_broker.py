@@ -11,11 +11,11 @@ Step 1: Set up the environment information
 '''
 # Environment Variables
 CREDENTIAL = {
-        'host': 'localhost',
-        'port': 4001,  # IB Gateway or TWS port number, should be 4001 or 7497 in default
-        'client_id': 1,
-        'readonly': False
-    }
+    'host': 'localhost',
+    'port': 4001,  # IB Gateway or TWS port number, should be 4001 or 7497 in default
+    'client_id': 1,
+    'readonly': False
+}
 
 '''
 Step 2: Set up the account information
@@ -25,7 +25,7 @@ IBKR_ACCOUNT_NUMBER = IBKR_account_number  # set up the account number in the en
 '''
 Step 3: Set up the trading information
 '''
-# TO DO
+# TODO: Set up the trading information for pre post market trading
 FILL_OUTSIDE_MARKET_HOURS = True  # enable if order fills on extended hours
 
 """ ⏫ Broker Setup ⏫ """
@@ -72,6 +72,14 @@ class IBKRBroker(BaseBroker):
             self.logger.error(f"Error retrieving positions: {e}")
             return None
 
+    def get_positions_by_ticker(self, ticker):
+        try:
+            positions = self.get_positions()
+            return next((p for p in positions if p.contract.symbol == ticker), None)
+        except Exception as e:
+            self.logger.error(f"Error retrieving positions by ticker: {e}")
+            return None
+
     def get_cash_balance(self):
         try:
             account_values = self.ib.accountValues(IBKR_ACCOUNT_NUMBER)
@@ -82,6 +90,9 @@ class IBKRBroker(BaseBroker):
             self.logger.error(f"Error retrieving cash balance: {e}")
             return None
 
+    def get_cash_balance_number_only(self):
+        return self.get_cash_balance()[0]
+
     def get_account_info(self):
         try:
             account_summary = self.ib.accountSummary(IBKR_ACCOUNT_NUMBER)
@@ -91,7 +102,7 @@ class IBKRBroker(BaseBroker):
             self.logger.error(f"Error retrieving account info: {e}")
             return None
 
-    def market_sell(self, stock: str, quantity: int):
+    def market_sell(self, stock: str, quantity: int, price: float):
         try:
             contract = Stock(stock, 'SMART', 'USD')
             order = MarketOrder('sell', quantity, account=IBKR_ACCOUNT_NUMBER)
@@ -101,7 +112,7 @@ class IBKRBroker(BaseBroker):
             self.logger.error(f"Error placing market sell order: {e}")
             return None
 
-    def market_buy(self, stock: str, quantity: int):
+    def market_buy(self, stock: str, quantity: int, price: float):
         try:
             contract = Stock(stock, 'SMART', 'USD')
             order = MarketOrder('buy', quantity, account=IBKR_ACCOUNT_NUMBER)

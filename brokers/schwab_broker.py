@@ -91,6 +91,8 @@ class SchwabBroker(BaseBroker):
 
         account_info = resp.json()
 
+        cash = 0
+
         if account_info['securitiesAccount']['type'] == 'CASH':
             cash = account_info['securitiesAccount']['currentBalances']['totalCash'] - \
                    account_info['securitiesAccount']['currentBalances']['unsettledCash']
@@ -125,6 +127,11 @@ class SchwabBroker(BaseBroker):
                 data_dict[code] = position_data
             return resp.status_code, data_dict
 
+    def get_positions_by_ticker(self, ticker: str):
+        data = self.get_positions()
+        # TODO: Implement this method, return the qty position for the given ticker
+        pass
+
     def get_cash_balance(self):
         acct_ret, acct_info = self.get_account_info()
         if acct_ret == httpx.codes.OK:
@@ -134,7 +141,10 @@ class SchwabBroker(BaseBroker):
             print("Trader: Get Cash Balance failed: {acct_info}")
             return -1
 
-    def market_sell(self, stock: str, quantity: int):
+    def get_cash_balance_number_only(self):
+        return self.get_cash_balance()
+
+    def market_sell(self, stock: str, quantity: int, price: float):
         order = equity_sell_market(stock, quantity).build()
         resp = self.client.place_order(self.account_hash, order)
 
@@ -145,7 +155,7 @@ class SchwabBroker(BaseBroker):
 
         return resp.status_code, None
 
-    def market_buy(self, stock: str, quantity: int):
+    def market_buy(self, stock: str, quantity: int, price: float):
         order = equity_buy_market(stock, quantity).build()
         resp = self.client.place_order(self.account_hash, order)
 
