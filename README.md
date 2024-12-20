@@ -1,12 +1,11 @@
-# WallTrading-API
-
+<h1 align="center" style="margin: 0 auto 0 auto;"> 
+   <img width="32" src="https://lookatwallstreet.notion.site/image/https%3A%2F%2Fprod-files-secure.s3.us-west-2.amazonaws.com%2F0472a71b-02f2-43f2-b650-2ae94ae1fb5b%2Fc0e93390-aca9-4f7a-8b36-8a66ec8d925f%2F%25E5%25BE%25AE%25E4%25BF%25A1%25E6%2588%25AA%25E5%259B%25BE_20240930173619.png?table=block&id=1296853c-146c-8096-bb90-d38181edfea5&spaceId=0472a71b-02f2-43f2-b650-2ae94ae1fb5b&width=600&userId=&cache=v2" alt="logo" >  
+   WallTrading-API
+</h1>
+<h4 align="center" style="margin: 0 auto 0 auto;">
 Developed by: (C) 2024 LookAtWallStreet
 
-Dev. Team:
-- Luke
-- Angus
-
-Dev Version: 0.0.1
+<br>
 
 ### Instructions:
 
@@ -65,6 +64,12 @@ python run_client.py
 ![image](https://github.com/user-attachments/assets/c9e14ec1-c2b2-47e7-ab2e-36e0d4bc3ebb)
 
 <br>
+
+Dev. Team:
+- Luke
+- Angus
+
+Dev Version: 0.0.1
 
 <br>
 
