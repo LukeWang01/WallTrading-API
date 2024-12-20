@@ -16,3 +16,6 @@ fastapi
 uvicorn
 pyjwt
 python-multipart
+pandas_market_calendars
+moomoo-api
+pytz

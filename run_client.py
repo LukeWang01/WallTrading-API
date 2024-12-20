@@ -55,12 +55,18 @@ async def main():
                 "codeNum": codeNum,
             }
         """
+
         qty = decision_qty(json_data)
         called_by = "client_runner"
         if qty > 0:
-            client_trader.strategy_make_trade(json_data["direction"], called_by, json_data["ticker"], qty, json_data["price"])
+            try:
+                print(">>> Making trade...")
+                client_trader.strategy_make_trade(json_data["direction"], called_by, json_data["ticker"], qty, json_data["price"])
+            except Exception as e:
+                print(">>> Error in making trade: ", e)
         else:
             print(">>> No trade made, qty decision is 0, trading passed...")
+
 
     # Initialize client
     client = DataClient(

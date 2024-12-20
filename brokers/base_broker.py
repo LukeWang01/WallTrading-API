@@ -17,6 +17,8 @@ class BaseBroker(ABC):
 
     @abstractmethod
     def get_positions_by_ticker(self, ticker: str):
+        # return the current position quantity of the ticker,
+        # int (or float if fractional shares are supported)
         pass
 
     @abstractmethod
@@ -25,6 +27,7 @@ class BaseBroker(ABC):
 
     @abstractmethod
     def get_cash_balance_number_only(self):
+        # return the current cash balance, float
         pass
 
     @abstractmethod
@@ -59,15 +62,15 @@ class BaseBroker(ABC):
                     if is_market_hours():
                         # market order
                         self.market_buy(stock, quantity, price)
-                        print(f"{get_current_time()}: Market Buy: {stock}, {quantity}, {price}, order placed, please check account.")
+                        print(f"{get_current_time()}: Market Buy: {stock}, {quantity}, {price}, order placed, please check account., {called_by}")
                     else:
                         # limit order extended hours
                         self.limit_buy(stock, quantity, price)
-                        print(f"{get_current_time()}: Limit Buy: {stock}, {quantity}, {price}, order placed, please check account.")
+                        print(f"{get_current_time()}: Limit Buy: {stock}, {quantity}, {price}, order placed, please check account., {called_by}")
 
                 else:
                     # order failed
-                    data = f"⚠️⚠️⚠️\n{get_current_time()}: {stock}, Buy Failed. \nThe market value is higher than the limit or trading not confirmed, skipped.\n⚠️⚠️⚠️"
+                    data = f"⚠️⚠️⚠️\n{get_current_time()}: {stock}, Buy Failed. \nThe market value is higher than the limit or trading not confirmed, skipped., {called_by}\n⚠️⚠️⚠️"
                     print(data)
 
             if direction == "Bear":
@@ -76,7 +79,7 @@ class BaseBroker(ABC):
 
                 if quantity >= position_by_ticker - 2:
                     # set the sell quantity at least less than the current position - 1
-                    data = f"{stock}, Sell Order failed, The current position is less than the order quantity, skipped."
+                    data = f"{stock}, Sell Order failed, The current position is less than the order quantity, skipped., {called_by}"
                     print(data)
                     ok_to_sell = False
 
@@ -84,13 +87,13 @@ class BaseBroker(ABC):
                     if is_market_hours():
                         # market order
                         self.market_sell(stock, quantity, price)
-                        print(f"{get_current_time()}: Market Sell: {stock}, {quantity}, {price}, order placed, please check account.")
+                        print(f"{get_current_time()}: Market Sell: {stock}, {quantity}, {price}, order placed, please check account., {called_by}")
                     else:
                         # limit order extended hours
                         self.limit_sell(stock, quantity, price)
-                        print(f"{get_current_time()}: Limit Sell: {stock}, {quantity}, {price}, order placed, please check account.")
+                        print(f"{get_current_time()}: Limit Sell: {stock}, {quantity}, {price}, order placed, please check account., {called_by}")
 
         # if stock not in the trading list, skip the order
         else:
             # print(f"{get_current_time()}: Stock({stock}) not in the trading list, skip the order.")
-            print(f'Stock({stock}) not in the trading list, skip the order.')
+            print(f'Stock({stock}) not in the trading list, skip the order., {called_by}')

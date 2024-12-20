@@ -89,7 +89,7 @@ class MooMooFutuBroker(BaseBroker):
                 print('Trader: Market Sell failed: ', data)
                 self.close_context()
                 return ret, data
-            print('Trader: Market Sell success!')
+            print('Trader: Market Sell success!', data)
             self.close_context()
             return ret, data
         else:
@@ -108,7 +108,7 @@ class MooMooFutuBroker(BaseBroker):
                 print('Trader: Market Buy failed: ', data)
                 self.close_context()
                 return ret, data
-            print('Trader: Market Buy success!')
+            print('Trader: Market Buy success!', data)
             self.close_context()
             return ret, data
         else:
@@ -128,7 +128,7 @@ class MooMooFutuBroker(BaseBroker):
                 print('Trader: Limit Sell failed: ', data)
                 self.close_context()
                 return ret, data
-            print('Trader: Limit Sell success!')
+            print('Trader: Limit Sell success!', data)
             self.close_context()
             return ret, data
         else:
@@ -148,7 +148,7 @@ class MooMooFutuBroker(BaseBroker):
                 print('Trader: Limit Buy failed: ', data)
                 self.close_context()
                 return ret, data
-            print('Trader: Limit Buy success!')
+            print('Trader: Limit Buy success!', data)
             self.close_context()
             return ret, data
         else:
