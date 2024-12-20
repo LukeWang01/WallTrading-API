@@ -6,9 +6,9 @@ import asyncio
 import json
 import requests
 from typing import Callable, Optional, Tuple
-from logger_config import setup_logger
+from utils.logger_config import setup_logger
 import os
-from requests.exceptions import RequestException, ConnectionError, Timeout
+from requests.exceptions import ConnectionError, Timeout
 
 # Create logs directory if it doesn't exist
 os.makedirs('logs', exist_ok=True)

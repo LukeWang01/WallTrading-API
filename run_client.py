@@ -6,7 +6,7 @@ from brokers.broker_factory import BrokerFactory
 from env._secrete import SERVER_IP, API_CLIENT_ID, API_PASSWORD
 from trading_settings import decision_qty, TRADING_BROKER
 from wall_api_client import DataClient, print_status
-from logger_config import setup_logger
+from utils.logger_config import setup_logger
 
 # Setup logger for the client runner
 logger = setup_logger('client_runner')
@@ -61,12 +61,12 @@ async def main():
         if qty > 0:
             try:
                 print(">>> Making trade...")
-                client_trader.strategy_make_trade(json_data["direction"], called_by, json_data["ticker"], qty, json_data["price"])
-            except Exception as e:
-                print(">>> Error in making trade: ", e)
+                client_trader.broker_make_trade(json_data["direction"], called_by, json_data["ticker"], qty,
+                                                json_data["price"])
+            except Exception as error:
+                print(">>> Error in making trade: ", error)
         else:
             print(">>> No trade made, qty decision is 0, trading passed...")
-
 
     # Initialize client
     client = DataClient(
