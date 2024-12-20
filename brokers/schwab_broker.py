@@ -39,6 +39,7 @@ class SchwabBroker(BaseBroker):
         self.connection_attempts = 0
         self.max_attempts = 3
         self.retry_delay = 5  # seconds
+        self.connect()
 
     def connect(self) -> bool:
         while self.connection_attempts < self.max_attempts:
@@ -82,6 +83,7 @@ class SchwabBroker(BaseBroker):
             return -1, None
 
     def get_account_info(self):
+        self.connect()
         resp = self.client.get_account(self.account_hash)
 
         if resp.status_code != httpx.codes.OK:
@@ -110,6 +112,7 @@ class SchwabBroker(BaseBroker):
         return resp.status_code, acct_info
 
     def get_positions(self):
+        self.connect()
         resp = self.client.get_account(self.account_hash, fields=[self.client.Account.Fields.POSITIONS])
 
         if resp.status_code != httpx.codes.OK:
@@ -128,6 +131,7 @@ class SchwabBroker(BaseBroker):
             return resp.status_code, data_dict
 
     def get_positions_by_ticker(self, ticker: str):
+        self.connect()
         status_code, positions = self.get_positions()
         
         position = positions.get(ticker)
@@ -137,6 +141,7 @@ class SchwabBroker(BaseBroker):
             return status_code, 0.0
 
     def get_cash_balance(self):
+        self.connect()
         acct_ret, acct_info = self.get_account_info()
         if acct_ret == httpx.codes.OK:
             return acct_info['cash']
@@ -149,6 +154,7 @@ class SchwabBroker(BaseBroker):
         return self.get_cash_balance()
 
     def market_sell(self, stock: str, quantity: int, price: float):
+        self.connect()
         order = equity_sell_market(stock, quantity).build()
         resp = self.client.place_order(self.account_hash, order)
 
@@ -160,6 +166,7 @@ class SchwabBroker(BaseBroker):
         return resp.status_code, None
 
     def market_buy(self, stock: str, quantity: int, price: float):
+        self.connect()
         order = equity_buy_market(stock, quantity).build()
         resp = self.client.place_order(self.account_hash, order)
 
@@ -171,6 +178,7 @@ class SchwabBroker(BaseBroker):
         return resp.status_code, None
 
     def limit_sell(self, stock: str, quantity: int, price: str):
+        self.connect()
         if FILL_OUTSIDE_MARKET_HOURS:
             order = equity_sell_limit(stock, quantity, price).set_duration(Duration.GOOD_TILL_CANCEL).set_session(
                 Session.SEAMLESS).build()
@@ -187,6 +195,7 @@ class SchwabBroker(BaseBroker):
         return resp.status_code, None
 
     def limit_buy(self, stock: str, quantity: int, price: str):
+        self.connect()
         if FILL_OUTSIDE_MARKET_HOURS:
             order = equity_buy_limit(stock, quantity, price).set_duration(Duration.GOOD_TILL_CANCEL).set_session(
                 Session.SEAMLESS).build()
