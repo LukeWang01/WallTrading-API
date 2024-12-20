@@ -92,5 +92,6 @@ or, just add me on Discord. My Discord ID: squawkwallstreet
 
 ##### Other Trading Repos:
 Webull Bot Repo: https://github.com/LukeWang01/Program-Trading-Based-on-Webull
+
 MooMoo Bot Repo: https://github.com/LukeWang01/WallTrading-Bot-MooMoo
 
