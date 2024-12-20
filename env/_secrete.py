@@ -23,8 +23,9 @@ IBKR_account_number = 'U12345678'
 
 """ ‼️‼️‼️  please keep your password in SAFE, DO NOT SHARE ‼️‼️‼️"""
 
-# Example credentials.yml structure:
 """
+TODO: for IBKR and Webull
+
 IBKR:
     host: localhost
     port: 7497
