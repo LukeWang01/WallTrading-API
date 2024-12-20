@@ -10,15 +10,15 @@ Developed by: (C) 2024 LookAtWallStreet
 ### Instructions:
 
 0. Download the Python:
-- 3.10: https://www.python.org/downloads/release/python-31011/
+   - 3.10: https://www.python.org/downloads/release/python-31011/
 
 <br>
 
 1. Clone the repository:
 
-```bash
-git clone https://github.com/LukeWang01/WallTrading-API.git
-```
+   ```bash
+   git clone https://github.com/LukeWang01/WallTrading-API.git
+   ```
 
 or, just download the zip file from the repository.
 
@@ -26,36 +26,36 @@ or, just download the zip file from the repository.
 
 2. Install the required dependencies:
 
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 <br>
 
 3. Set up the ID and Password in `env/_secrets.py`:
-- replace the `ID` and `PASSWORD` with your own ID and Password.
-- replace any trading password as noted in the file. 
+   - replace the API `ID` and `PASSWORD` with your own ID and Password.
+   - replace any trading password as noted in the file. 
 
 <br>
 
 4. Set up the `trading_settings.py`:
-- input your broker name as noted in the file.
-- change other settings as needed.
+   - input your broker name as noted in the file.
+   - change other settings as needed.
 
 <br>
 
 5. Run any other required app as noted:
-- MooMoo: run the openD, set the port number to `11112`, and login to your MooMoo account. More info: [here](https://github.com/LukeWang01/WallTrading-Bot-MooMoo)
-- SChwab: TBA
-- IBKR: TBA
-- Webull: TBA
+   - MooMoo: run the openD, set the port number to `11112`, and login to your MooMoo account. More info: [here](https://github.com/LukeWang01/WallTrading-Bot-MooMoo)
+   - SChwab: TBA
+   - IBKR: TBA
+   - Webull: TBA
 
 <br>
 
 6. Run the `run_client.py` to start the client:
-```bash
-python run_client.py
-```
+   ```bash
+   python run_client.py
+   ```
 
 <br>
 
@@ -75,8 +75,6 @@ Dev Version: 0.0.1
 
 ### Other Info:
 Get more info from [LookAtWallStreet](https://www.patreon.com/LookAtWallStreet) on Patreon.
-
-<br>
 
 ##### Don't have MooMoo Account?
 Feel free to use the link below to get a MooMoo account, 0 fees for most tradings. We both can get some free stocks. 💰
