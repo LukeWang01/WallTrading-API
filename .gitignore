@@ -162,5 +162,3 @@ cython_debug/
 #.idea/
 /.idea
 env/_secrete.py
-env/_secrete.py
-run_client_test.py
