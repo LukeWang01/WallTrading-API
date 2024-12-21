@@ -19,43 +19,89 @@ class BaseBroker(ABC):
 
     @abstractmethod
     def get_positions(self):
+        """
+        Get the current positions
+        :return: status code, positions
+        """
         pass
 
     @abstractmethod
     def get_positions_by_ticker(self, ticker: str):
-        # return the current position quantity of the ticker,
-        # int (or float if fractional shares are supported)
+        """
+        Get the current positions by ticker
+        :param ticker:
+        :return: status code, positions
+        """
         pass
 
     @abstractmethod
     def get_cash_balance(self):
+        """
+        Get the cash balance
+        :return: status code, cash balance
+        """
         pass
 
     @abstractmethod
     def get_cash_balance_number_only(self):
-        # return the current cash balance, float
+        """
+        Get the cash balance number only
+        :return: status code, cash balance
+        """
         pass
 
     @abstractmethod
     def get_account_info(self):
+        """
+        Get the account information
+        :return: status code, account information
+        """
         pass
 
     @abstractmethod
     def market_sell(self, stock: str, quantity: int, price: float):
         # ignore price for market orders if needed for the broker class implementation
+        """
+        Market sell
+        :param stock:
+        :param quantity:
+        :param price:
+        :return: status code, order data
+        """
         pass
 
     @abstractmethod
     def market_buy(self, stock: str, quantity: int, price: float):
         # ignore price for market orders if needed for the broker class implementation
+        """
+        Market buy
+        :param stock:
+        :param quantity:
+        :param price:
+        :return: status code, order data
+        """
         pass
 
     @abstractmethod
     def limit_sell(self, stock: str, quantity: int, price: float):
+        """
+        Limit sell
+        :param stock:
+        :param quantity:
+        :param price:
+        :return: status code, order data
+        """
         pass
 
     @abstractmethod
     def limit_buy(self, stock: str, quantity: int, price: float):
+        """
+        Limit buy
+        :param stock:
+        :param quantity:
+        :param price:
+        :return: status code, order data
+        """
         pass
 
     def broker_make_trade(self, direction: str, called_by: str, stock: str, quantity: int, price: float):

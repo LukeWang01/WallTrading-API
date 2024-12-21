@@ -11,7 +11,7 @@ import os
 from requests.exceptions import ConnectionError, Timeout
 
 # Create logs directory if it doesn't exist
-os.makedirs('logs', exist_ok=True)
+os.makedirs('../logs', exist_ok=True)
 
 # Setup logger
 logger = setup_logger('wall_api_client')

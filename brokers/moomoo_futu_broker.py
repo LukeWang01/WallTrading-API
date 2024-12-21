@@ -70,7 +70,7 @@ class MooMooFutuBroker(BaseBroker):
     def close_context(self):
         self.trade_context.close()
 
-    def unlock_trade(self):
+    def _unlock_trade(self):
         if TRADING_ENVIRONMENT == TrdEnv.REAL:
             ret, data = self.trade_context.unlock_trade(TRADING_PWD)
             if ret != RET_OK:
@@ -81,7 +81,7 @@ class MooMooFutuBroker(BaseBroker):
 
     def market_sell(self, stock, quantity, price):
         self.init_context()
-        if self.unlock_trade():
+        if self._unlock_trade():
             code = f'US.{stock}'
             ret, data = self.trade_context.place_order(price=price, qty=quantity, code=code, trd_side=TrdSide.SELL,
                                                        order_type=OrderType.MARKET, trd_env=TRADING_ENVIRONMENT)
@@ -91,35 +91,35 @@ class MooMooFutuBroker(BaseBroker):
                 return ret, data
             print('Trader: Market Sell success!', data)
             self.close_context()
-            return ret, data
+            return self.ret_ok_code, data
         else:
             data = 'Trader: Market Sell failed: unlock trade failed'
             print(data)
             self.close_context()
-            return -1, data
+            return self.ret_error_code, data
 
     def market_buy(self, stock, quantity, price):
         self.init_context()
-        if self.unlock_trade():
+        if self._unlock_trade():
             code = f'US.{stock}'
             ret, data = self.trade_context.place_order(price=price, qty=quantity, code=code, trd_side=TrdSide.BUY,
                                                        order_type=OrderType.MARKET, trd_env=TRADING_ENVIRONMENT)
             if ret != RET_OK:
                 print('Trader: Market Buy failed: ', data)
                 self.close_context()
-                return ret, data
+                return self.ret_error_code, data
             print('Trader: Market Buy success!', data)
             self.close_context()
-            return ret, data
+            return self.ret_ok_code, data
         else:
             data = 'Trader: Market Buy failed: unlock trade failed'
             print(data)
             self.close_context()
-            return -1, data
+            return self.ret_error_code, data
 
     def limit_sell(self, stock, quantity, price):
         self.init_context()
-        if self.unlock_trade():
+        if self._unlock_trade():
             code = f'US.{stock}'
             ret, data = self.trade_context.place_order(price=price, qty=quantity, code=code, trd_side=TrdSide.SELL,
                                                        order_type=OrderType.NORMAL, trd_env=TRADING_ENVIRONMENT,
@@ -127,19 +127,19 @@ class MooMooFutuBroker(BaseBroker):
             if ret != RET_OK:
                 print('Trader: Limit Sell failed: ', data)
                 self.close_context()
-                return ret, data
+                return self.ret_error_code, data
             print('Trader: Limit Sell success!', data)
             self.close_context()
-            return ret, data
+            return self.ret_ok_code, data
         else:
             data = 'Trader: Limit Sell failed: unlock trade failed'
             print(data)
             self.close_context()
-            return -1, data
+            return self.ret_error_code, data
 
     def limit_buy(self, stock, quantity, price):
         self.init_context()
-        if self.unlock_trade():
+        if self._unlock_trade():
             code = f'US.{stock}'
             ret, data = self.trade_context.place_order(price=price, qty=quantity, code=code, trd_side=TrdSide.BUY,
                                                        order_type=OrderType.NORMAL, trd_env=TRADING_ENVIRONMENT,
@@ -147,24 +147,24 @@ class MooMooFutuBroker(BaseBroker):
             if ret != RET_OK:
                 print('Trader: Limit Buy failed: ', data)
                 self.close_context()
-                return ret, data
+                return self.ret_error_code, data
             print('Trader: Limit Buy success!', data)
             self.close_context()
-            return ret, data
+            return self.ret_ok_code, data
         else:
             data = 'Trader: Limit Buy failed: unlock trade failed'
             print(data)
             self.close_context()
-            return -1, data
+            return self.ret_error_code, data
 
     def get_account_info(self):
         self.init_context()
-        if self.unlock_trade():
+        if self._unlock_trade():
             ret, data = self.trade_context.accinfo_query()
             if ret != RET_OK:
                 print('Trader: Get Account Info failed: ', data)
                 self.close_context()
-                return ret, data
+                return self.ret_error_code, data
 
             acct_info = {
                 'cash': round(data["cash"][0], 2),
@@ -173,48 +173,53 @@ class MooMooFutuBroker(BaseBroker):
             }
             self.close_context()
             logging_info('Trader: Get Account Info success!')
-            return ret, acct_info
+            return self.ret_ok_code, acct_info
         else:
             data = 'Trader: Get Account Info failed: unlock trade failed'
             print(data)
             self.close_context()
-            return -1, data
+            return self.ret_error_code, data
 
     def get_positions(self):
         self.init_context()
-        if self.unlock_trade():
+        if self._unlock_trade():
             ret, data = self.trade_context.position_list_query()
             if ret != RET_OK:
                 print('Trader: Get Positions failed: ', data)
                 self.close_context()
-                return ret, data
+                return self.ret_error_code, data
             # refactor the data
             data['code'] = data['code'].str[3:]
             data_dict = data.set_index('code').to_dict(orient='index')
             self.close_context()
             logging_info('Trader: Get Positions success!')
-            return ret, data_dict
+            return self.ret_ok_code, data_dict
         else:
             data = 'Trader: Get Positions failed: unlock trade failed'
             print(data)
             self.close_context()
-            return -1, data
+            return self.ret_error_code, data
 
     def get_positions_by_ticker(self, ticker):
         position_ret, position_data = self.get_positions()
-        if position_ret != RET_OK:
+        if position_ret != self.ret_ok_code:
             # get current position quantity
             print('MooMoo, Get Positions by Ticker failed: ', position_data)
-            return False
-        return position_data[ticker]["qty"]
+            return self.ret_error_code, position_data
+        return self.ret_ok_code, position_data[ticker]["qty"]
 
     def get_cash_balance(self):
         acct_ret, acct_info = self.get_account_info()
-        if acct_ret == RET_OK:
-            return acct_info['cash']
+        if acct_ret == self.ret_ok_code:
+            return self.ret_ok_code, acct_info['cash']
         else:
             print('MooMooFutuBroker: Get Account Info and cash failed: ', acct_info)
-            return False
+            return self.ret_error_code, acct_info
 
     def get_cash_balance_number_only(self):
-        return self.get_cash_balance()
+        acct_ret, acct_info = self.get_cash_balance()
+        if acct_ret == self.ret_ok_code:
+            return self.ret_ok_code, acct_info
+        else:
+            print('MooMooFutuBroker: Get cash balance number only failed: ', acct_info)
+            return self.ret_error_code, acct_info
