@@ -53,11 +53,15 @@ or, just download the zip file from the repository.
 
 <br>
 
-#### 6. Run the `run_client.py` to start the client:
+#### 6. Run the `run_client_test.py` to test if the setup are ok:
+   ```bash
+   python run_client_test.py
+   ```
+
+#### 7. Run the `run_client.py` to start the client:
    ```bash
    python run_client.py
    ```
-
 
 <br>
 
