@@ -47,7 +47,11 @@ class SchwabBroker(BaseBroker):
                 self.client = easy_client(api_key=SCHWAB_APP_KEY, app_secret=SCHWAB_SECRET,
                                           callback_url=SCHWAB_CALLBACK_URL, token_path=SCHWAB_TOKEN_PATH,
                                           max_token_age=60 * 60 * 24 * 6.5)
-                self.account_hash = self._get_account_hash()[1]
+                
+                ret_status_code, self.account_hash = self._get_account_hash()
+                if ret_status_code != self.ret_ok_code:
+                    raise Exception
+
                 self.connected = True
                 self.connection_attempts = 0
                 self.logger.info("Successfully connected to Schwab")
@@ -60,6 +64,7 @@ class SchwabBroker(BaseBroker):
                 if self.connection_attempts < self.max_attempts:
                     time.sleep(self.retry_delay)
 
+        self.connected = False
         self.logger.error("Failed to connect to Schwab after maximum attempts")
         return False
 
@@ -68,7 +73,7 @@ class SchwabBroker(BaseBroker):
         if resp.status_code != httpx.codes.OK:
             self.logger.error(f"Trader: Get Account Hash failed: {resp.json()['message']}")
             print(f"Trader: Get Account Hash failed: {resp.json()['message']}")
-            return resp.status_code, None
+            return self.ret_error_code, None
 
         account_hash = next(
             (item['hashValue'] for item in resp.json() if item['accountNumber'] == SCHWAB_ACCOUNT_NUMBER),
@@ -76,20 +81,25 @@ class SchwabBroker(BaseBroker):
         )
 
         if account_hash:
-            return resp.status_code, account_hash
+            return self.ret_ok_code, account_hash
         else:
             self.logger.error('Trader: Get Account Hash failed: wrong account number')
             print("Trader: Get Account Hash failed: wrong account number")
-            return -1, None
+            return self.ret_error_code, None
 
     def get_account_info(self):
         self.connect()
+        if not self.connected:
+            self.logger.error(f"Trader: Get Account Info failed: not connected")
+            print("Trader: Get Account Info failed: not connected")
+            return self.ret_error_code, None
+
         resp = self.client.get_account(self.account_hash)
 
         if resp.status_code != httpx.codes.OK:
             self.logger.error(f"Trader: Get Account Info failed: {resp.json()['message']}")
             print(f"Trader: Get Account Info failed: {resp.json()['message']}")
-            return resp.status_code, resp.json()['message']
+            return self.ret_error_code, None
 
         account_info = resp.json()
 
@@ -109,16 +119,31 @@ class SchwabBroker(BaseBroker):
             'market_value': round(market_value, 2),
         }
 
-        return resp.status_code, acct_info
+        return self.ret_ok_code, acct_info
+    
+    def get_cash_balance(self):
+        acct_ret, acct_info = self.get_account_info()
+        if acct_ret == self.ret_ok_code:
+            return self.ret_ok_code, acct_info['cash']
+        else:
+            return self.ret_error_code, None
 
-    def get_positions(self):
+    def get_cash_balance_number_only(self):
+        return self.get_cash_balance()
+
+    def get_positions(self):      
         self.connect()
+        if not self.connected:
+            self.logger.error(f"Trader: Get Positions failed: not connected")
+            print("Trader: Get Positions failed: not connected")
+            return self.ret_error_code, None
+        
         resp = self.client.get_account(self.account_hash, fields=[self.client.Account.Fields.POSITIONS])
 
         if resp.status_code != httpx.codes.OK:
             self.logger.error(f"Trader: Get Positions failed: {resp.json()['message']}")
             print(f"Trader: Get Positions failed: {resp.json()['message']}")
-            return resp.status_code, resp.json()['message']
+            return self.ret_error_code, None
         else:
             account_info = resp.json()
             positions = account_info.get('securitiesAccount', {}).get('positions', [])
@@ -128,57 +153,60 @@ class SchwabBroker(BaseBroker):
                 position_data = {key: value for key, value in position.items() if key != 'instrument'}
                 position_data.update(position['instrument'])
                 data_dict[code] = position_data
-            return resp.status_code, data_dict
+            return self.ret_ok_code, data_dict
 
     def get_positions_by_ticker(self, ticker: str):
-        self.connect()
-        status_code, positions = self.get_positions()
-        
-        position = positions.get(ticker)
-        if position and 'longQuantity' in position:
-            return status_code, position['longQuantity']
+        ret_status_code, positions = self.get_positions()          
+        if ret_status_code == self.ret_ok_code:
+            position = positions.get(ticker, {})
+            return self.ret_ok_code, position.get('longQuantity', 0.0)
         else:
-            return status_code, 0.0
-
-    def get_cash_balance(self):
-        self.connect()
-        acct_ret, acct_info = self.get_account_info()
-        if acct_ret == httpx.codes.OK:
-            return acct_info['cash']
-        else:
-            self.logger.error(f"Trader: Get Cash Balance failed: {acct_info}")
-            print("Trader: Get Cash Balance failed: {acct_info}")
-            return -1
-
-    def get_cash_balance_number_only(self):
-        return self.get_cash_balance()
+            return self.ret_error_code, None       
 
     def market_sell(self, stock: str, quantity: int, price: float):
         self.connect()
+        if not self.connected:
+            self.logger.error(f"Trader: Market Sell failed: not connected")
+            print("Trader: Market Sell failed: not connected")
+            return self.ret_error_code, None
+        
         order = equity_sell_market(stock, quantity).build()
         resp = self.client.place_order(self.account_hash, order)
 
         if resp.status_code != httpx.codes.CREATED:
             self.logger.error(f"Trader: Market Sell failed: {resp.json()['message']}")
             print(f"Trader: Market Sell failed: {resp.json()['message']}")
-            return resp.status_code, resp.json()['message']
+            return self.ret_error_code, None
 
-        return resp.status_code, None
+        return self.ret_ok_code, None
 
     def market_buy(self, stock: str, quantity: int, price: float):
         self.connect()
+        if not self.connected:
+            self.logger.error(f"Trader: Market Buy failed: not connected")
+            print("Trader: Market Buy failed: not connected")
+            return self.ret_error_code, None
+        
         order = equity_buy_market(stock, quantity).build()
         resp = self.client.place_order(self.account_hash, order)
 
         if resp.status_code != httpx.codes.CREATED:
             self.logger.error(f"Trader: Market Buy failed: {resp.json()['message']}")
             print(f"Trader: Market Buy failed: {resp.json()['message']}")
-            return resp.status_code, resp.json()['message']
+            return self.ret_error_code, None
 
-        return resp.status_code, None
+        return self.ret_ok_code, None
 
     def limit_sell(self, stock: str, quantity: int, price: str):
         self.connect()
+        if not self.connected:
+            self.logger.error(f"Trader: Limit Sell failed: not connected")
+            print("Trader: Limit Sell failed: not connected")
+            return self.ret_error_code, None
+
+        if not isinstance(price, str):
+            price = str(price)
+
         if FILL_OUTSIDE_MARKET_HOURS:
             order = equity_sell_limit(stock, quantity, price).set_duration(Duration.GOOD_TILL_CANCEL).set_session(
                 Session.SEAMLESS).build()
@@ -190,12 +218,20 @@ class SchwabBroker(BaseBroker):
         if resp.status_code != httpx.codes.CREATED:
             self.logger.error(f"Trader: Limit Sell failed: {resp.json()['message']}")
             print(f"Trader: Limit Sell failed: {resp.json()['message']}")
-            return resp.status_code, resp.json()['message']
+            return self.ret_error_code, None
 
-        return resp.status_code, None
+        return self.ret_ok_code, None
 
     def limit_buy(self, stock: str, quantity: int, price: str):
         self.connect()
+        if not self.connected:
+            self.logger.error(f"Trader: Limit Buy failed: not connected")
+            print("Trader: Limit Buy failed: not connected")
+            return self.ret_error_code, None
+
+        if not isinstance(price, str):
+            price = str(price)
+
         if FILL_OUTSIDE_MARKET_HOURS:
             order = equity_buy_limit(stock, quantity, price).set_duration(Duration.GOOD_TILL_CANCEL).set_session(
                 Session.SEAMLESS).build()
@@ -207,9 +243,9 @@ class SchwabBroker(BaseBroker):
         if resp.status_code != httpx.codes.CREATED:
             self.logger.error(f"Trader: Limit Buy failed: {resp.json()['message']}")
             print(f"Trader: Limit Buy failed: {resp.json()['message']}")
-            return resp.status_code, resp.json()['message']
+            return self.ret_error_code, None
 
-        return resp.status_code, None
+        return self.ret_ok_code, None
 
     def refresh_token(self):
         try:
