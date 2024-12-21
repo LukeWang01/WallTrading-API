@@ -27,8 +27,7 @@ SCHWAB_SECRET = Schwab_secret  # set up the Secret in the env/_secrete.py file
 '''
 Step 3: Set up the trading information
 '''
-# Deprecated the FILL_OUTSIDE_MARKET_HOURS configuration
-# FILL_OUTSIDE_MARKET_HOURS = True
+FILL_OUTSIDE_MARKET_HOURS = True  # enable if order fills on extended hours
 
 """ ⏫ Broker Setup ⏫ """
 
@@ -208,15 +207,12 @@ class SchwabBroker(BaseBroker):
         if not isinstance(price, str):
             price = str(price)
 
-        # Deprecated the FILL_OUTSIDE_MARKET_HOURS configuration
-        # if FILL_OUTSIDE_MARKET_HOURS:
-        #     order = equity_sell_limit(stock, quantity, price).set_duration(Duration.GOOD_TILL_CANCEL).set_session(
-        #         Session.SEAMLESS).build()
-        # else:
-        #     order = equity_sell_limit(stock, quantity, price).set_duration(Duration.GOOD_TILL_CANCEL).set_session(
-        #         Session.NORMAL).build()
-        order = equity_sell_limit(stock, quantity, price).set_duration(Duration.GOOD_TILL_CANCEL).set_session(
+        if FILL_OUTSIDE_MARKET_HOURS:
+            order = equity_sell_limit(stock, quantity, price).set_duration(Duration.GOOD_TILL_CANCEL).set_session(
                 Session.SEAMLESS).build()
+        else:
+            order = equity_sell_limit(stock, quantity, price).set_duration(Duration.GOOD_TILL_CANCEL).set_session(
+                Session.NORMAL).build()
         resp = self.client.place_order(self.account_hash, order)
 
         if resp.status_code != httpx.codes.CREATED:
@@ -236,15 +232,12 @@ class SchwabBroker(BaseBroker):
         if not isinstance(price, str):
             price = str(price)
 
-        # Deprecated the FILL_OUTSIDE_MARKET_HOURS configuration
-        # if FILL_OUTSIDE_MARKET_HOURS:
-        #     order = equity_buy_limit(stock, quantity, price).set_duration(Duration.GOOD_TILL_CANCEL).set_session(
-        #         Session.SEAMLESS).build()
-        # else:
-        #     order = equity_buy_limit(stock, quantity, price).set_duration(Duration.GOOD_TILL_CANCEL).set_session(
-        #         Session.NORMAL).build()
-        order = equity_buy_limit(stock, quantity, price).set_duration(Duration.GOOD_TILL_CANCEL).set_session(
+        if FILL_OUTSIDE_MARKET_HOURS:
+            order = equity_buy_limit(stock, quantity, price).set_duration(Duration.GOOD_TILL_CANCEL).set_session(
                 Session.SEAMLESS).build()
+        else:
+            order = equity_buy_limit(stock, quantity, price).set_duration(Duration.GOOD_TILL_CANCEL).set_session(
+                Session.NORMAL).build()
         resp = self.client.place_order(self.account_hash, order)
 
         if resp.status_code != httpx.codes.CREATED:
