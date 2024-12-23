@@ -8,6 +8,14 @@
 # updated: 11/17/2024, final version for open source only
 # Version 2.0
 # for more info, please visit: https://www.patreon.com/LookAtWallStreet
+
+# updated: 12/20/2024, final version for open source only
+# Version 0.1.1
+# for more info, please visit: https://www.patreon.com/LookAtWallStreet
+Dev. Team:
+Luke
+Angus
+
 """
 
 # MooMoo API Documentation, English:
@@ -18,7 +26,8 @@
 from moomoo import *
 
 from brokers.base_broker import BaseBroker
-from env._secrete import MooMoo_PWD
+from env._secrete import MooMoo_Futu_PWD, MooMoo_Futu_SecurityFirm
+from trading_settings import TRADING_BROKER
 from utils.dataIO import logging_info
 
 """ ⬇️ Broker Setup ⬇️ """
@@ -35,12 +44,7 @@ TRADING_ENVIRONMENT = TrdEnv.REAL  # set up trading environment, real, or simula
 '''
 Step 2: Set up the account information
 '''
-TRADING_PWD = MooMoo_PWD  # set up the trading password in the env/_secrete.py file
-SECURITY_FIRM = SecurityFirm.FUTUINC  # set up the security firm based on your broker account registration
-# for U.S. account, use FUTUINC, (default)
-# for HongKong account, use FUTUSECURITIES
-# for Singapore account, use FUTUSG
-# for Australia account, use FUTUAU
+TRADING_PWD = MooMoo_Futu_PWD  # set up the trading password in the env/_secrete.py file
 
 '''
 Step 3: Set up the trading information
@@ -63,9 +67,19 @@ class MooMooFutuBroker(BaseBroker):
         super().__init__()
         self.trade_context = None
 
+        # set up the security firm based on your broker account registration
+        if MooMoo_Futu_SecurityFirm == 'FUTUINC':
+            self.Broker_SecurityFirm = SecurityFirm.FUTUINC  # for U.S. account, use FUTUINC, (default)
+        elif MooMoo_Futu_SecurityFirm == 'FUTUSECURITIES' or TRADING_BROKER == 'Futu':
+            self.Broker_SecurityFirm = SecurityFirm.FUTUSECURITIES  # for HongKong account, use 'FUTUSECURITIES'
+        elif MooMoo_Futu_SecurityFirm == 'FUTUSG':
+            self.Broker_SecurityFirm = SecurityFirm.FUTUSG  # for Singapore account, use 'FUTUSG'
+        else:
+            self.Broker_SecurityFirm = SecurityFirm.FUTUAU  # for Australia account, use 'FUTUAU'
+
     def init_context(self):
         self.trade_context = OpenSecTradeContext(filter_trdmarket=TRADING_MARKET, host=MOOMOOOPEND_ADDRESS,
-                                                 port=MOOMOOOPEND_PORT, security_firm=SECURITY_FIRM)
+                                                 port=MOOMOOOPEND_PORT, security_firm=self.Broker_SecurityFirm)
 
     def close_context(self):
         self.trade_context.close()

@@ -1,3 +1,12 @@
+"""
+# updated: 12/20/2024, final version for open source only
+# Version 0.1.1
+# for more info, please visit: https://www.patreon.com/LookAtWallStreet
+Dev. Team:
+Luke
+Angus
+"""
+
 import requests
 from webull import webull
 

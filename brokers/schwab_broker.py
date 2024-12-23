@@ -1,3 +1,12 @@
+"""
+# updated: 12/20/2024, final version for open source only
+# Version 0.1.1
+# for more info, please visit: https://www.patreon.com/LookAtWallStreet
+Dev. Team:
+Luke
+Angus
+"""
+
 from brokers.base_broker import BaseBroker
 from schwab.auth import easy_client, client_from_login_flow, client_from_manual_flow
 from schwab.orders.equities import equity_buy_limit, equity_sell_limit, equity_buy_market, equity_sell_market
