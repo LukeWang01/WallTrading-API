@@ -183,7 +183,9 @@ class IBKRBroker(BaseBroker):
             contract = Stock(stock, 'SMART', 'USD')
             order = LimitOrder('sell', quantity, price, account=IBKR_ACCOUNT_NUMBER)
             trade = self.ib.placeOrder(contract, order)
-            return self.ret_ok_code, NoneNone    self.logger.error(f"Error placing limit sell order: {e}")
+            return self.ret_ok_code, None
+        except Exception as e:
+            self.logger.error(f"Error placing limit sell order: {e}")
             return self.ret_error_code, None
         finally:
             self.ib.disconnect()
@@ -199,7 +201,9 @@ class IBKRBroker(BaseBroker):
             contract = Stock(stock, 'SMART', 'USD')
             order = LimitOrder('buy', quantity, price, account=IBKR_ACCOUNT_NUMBER)
             trade = self.ib.placeOrder(contract, order)
-            return self.ret_ok_code, NoneNone    self.logger.error(f"Error placing limit buy order: {e}")
+            return self.ret_ok_code, None
+        except Exception as e:
+            self.logger.error(f"Error placing limit buy order: {e}")
             return self.ret_error_code, None
         finally:
             self.ib.disconnect()
