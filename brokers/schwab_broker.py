@@ -68,7 +68,7 @@ class SchwabBroker(BaseBroker):
 
                 self.connected = True
                 self.connection_attempts = 0
-                self.logger.info("Successfully connected to Schwab")
+                # self.logger.info("Successfully connected to Schwab")
                 return True
 
             except Exception as e:
@@ -133,11 +133,14 @@ class SchwabBroker(BaseBroker):
             'market_value': round(market_value, 2),
         }
 
+        self.logger.info(f"Retrieved account info: {acct_info}")
+
         return self.ret_ok_code, acct_info
 
     def get_cash_balance(self):
         acct_ret, acct_info = self.get_account_info()
         if acct_ret == self.ret_ok_code:
+            self.logger.info(f"Retrieved cash balance: {acct_info['cash']}")
             return self.ret_ok_code, acct_info['cash']
         else:
             return self.ret_error_code, None
@@ -167,6 +170,7 @@ class SchwabBroker(BaseBroker):
                 position_data = {key: value for key, value in position.items() if key != 'instrument'}
                 position_data.update(position['instrument'])
                 data_dict[code] = position_data
+            self.logger.info(f"Retrieved positions: {data_dict}")
             return self.ret_ok_code, data_dict
 
     def get_positions_by_ticker(self, ticker: str):
