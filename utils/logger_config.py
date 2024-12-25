@@ -4,7 +4,7 @@ from datetime import datetime
 import os
 
 # Create logs directory if it doesn't exist
-os.makedirs('../logs', exist_ok=True)
+os.makedirs('./logs', exist_ok=True)
 
 # Define custom formatter
 
@@ -49,7 +49,7 @@ def setup_logger(name):
 
     # Create file handler
     log_file = os.path.join(
-        '../logs', f'{name}_{datetime.now().strftime("%Y%m%d")}.log')
+        './logs', f'{name}_{datetime.now().strftime("%Y%m%d")}.log')
     file_handler = logging.FileHandler(log_file)
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(logging.Formatter(
