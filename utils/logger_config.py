@@ -2,6 +2,7 @@ import logging
 import sys
 from datetime import datetime
 import os
+from logging.handlers import RotatingFileHandler
 
 # Create logs directory if it doesn't exist
 os.makedirs('./logs', exist_ok=True)
@@ -47,10 +48,14 @@ def setup_logger(name):
     console_handler.setLevel(logging.DEBUG)
     console_handler.setFormatter(CustomFormatter())
 
-    # Create file handler
+    # Create rotating file handler instead of regular file handler
     log_file = os.path.join(
         './logs', f'{name}_{datetime.now().strftime("%Y%m%d")}.log')
-    file_handler = logging.FileHandler(log_file)
+    file_handler = RotatingFileHandler(
+        log_file,
+        maxBytes=10*1024*1024,  # 10MB max file size
+        backupCount=5  # Keep 5 backup files
+    )
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s',

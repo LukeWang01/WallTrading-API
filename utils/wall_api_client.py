@@ -6,9 +6,11 @@ import asyncio
 import json
 import requests
 from typing import Callable, Optional, Tuple
-from utils.logger_config import setup_logger
 import os
-from requests.exceptions import ConnectionError, Timeout
+from requests.exceptions import RequestException, ConnectionError, Timeout
+import time
+
+from utils.logger_config import setup_logger
 
 # Create logs directory if it doesn't exist
 os.makedirs('./logs', exist_ok=True)
@@ -54,11 +56,21 @@ class DataClient:
         self.reconnect_attempts = 0
         self.max_reconnect_attempts = 5
         self.base_retry_delay = 5  # Base delay in seconds
+        self.max_retry_delay = 300  # Maximum delay (5 minutes)
+        self.retry_count = 0  # Track retry attempts
+        self.max_retries = 10  # Maximum number of retries before giving up
         self.max_auth_retries = 3
         self.auth_retry_count = 0
         self.auth_required = False  # New flag to track if re-auth is needed
         self.max_server_check_retries = 5  # New attribute for server check retries
         self.server_check_count = 0  # New counter for server checks
+        self.ping_interval = 30  # Increase ping interval (seconds)
+        self.ping_timeout = 10   # Ping timeout (seconds)
+        self.heartbeat_failed_count = 0
+        self.max_heartbeat_failures = 3
+        self.last_ping_time = 0  # Track last successful ping time
+        # Time to wait before starting health checks
+        self.connection_stabilization_time = 5
         print_status(
             "DataClient", f"Initialized for client {client_id}", "INFO")
         logger.info(
@@ -152,20 +164,29 @@ class DataClient:
             self.auth_retry_count += 1
             return False
 
-    def get_retry_delay(self, attempt: int) -> int:
-        """Implement exponential backoff for retry delays"""
-        return min(self.base_retry_delay * (2 ** attempt), 60)  # Max delay of 60 seconds
+    def get_retry_delay(self) -> int:
+        """Calculate exponential backoff delay"""
+        # Exponential backoff: base_delay * 2^retry_count
+        delay = min(
+            self.base_retry_delay * (2 ** self.retry_count),
+            self.max_retry_delay
+        )
+        logger.info(f"Retry attempt {self.retry_count + 1}, delay: {delay}s")
+        print_status("Connection",
+                     f"Retry attempt {self.retry_count + 1} of {self.max_retries}, waiting {delay}s",
+                     "INFO")
+        return delay
 
     async def connect(self) -> bool:
         """Connect to WebSocket server with authentication"""
         try:
-            if self.reconnect_attempts >= self.max_reconnect_attempts:
+            if self.retry_count >= self.max_retries:
                 msg = "Maximum reconnection attempts reached. Requiring re-authentication."
                 logger.error(msg)
                 print_status("Connection", msg, "ERROR")
                 self.token = None
                 self.auth_required = True
-                self.reconnect_attempts = 0
+                self.retry_count = 0
                 return False
 
             if not self.token:
@@ -181,9 +202,11 @@ class DataClient:
 
             self.ws = await websockets.connect(
                 self.ws_url,
-                ping_interval=20,
-                ping_timeout=10,
-                close_timeout=10
+                ping_interval=self.ping_interval,
+                ping_timeout=self.ping_timeout,
+                close_timeout=10,
+                max_size=2**23,
+                user_agent_header="DataClient/1.0"
             )
 
             # Send authentication token
@@ -193,13 +216,28 @@ class DataClient:
 
             try:
                 response = await asyncio.wait_for(self.ws.recv(), timeout=5)
+                response_data = json.loads(response)
+
+                # Check if server indicates token expiry
+                if isinstance(response_data, dict) and response_data.get('error') == 'token_expired':
+                    logger.warning(
+                        "Token expired, requiring re-authentication")
+                    self.token = None
+                    self.auth_required = True
+                    return False
+
                 logger.info(
                     f"Server response after authentication: {response}")
+                self.heartbeat_failed_count = 0
+                self.last_ping_time = time.time()
             except asyncio.TimeoutError:
                 logger.warning(
                     "No response after authentication (this might be normal)")
+            except json.JSONDecodeError:
+                logger.warning("Invalid response format from server")
 
-            self.reconnect_attempts = 0
+            await asyncio.sleep(self.connection_stabilization_time)
+            self.retry_count = 0
             self.auth_required = False
             logger.info("Successfully connected to server")
             print_status(
@@ -207,111 +245,167 @@ class DataClient:
             return True
 
         except Exception as e:
-            logger.error(f"Connection failed: {str(e)}")
-            print_status("Connection", f"Failed: {str(e)}", "ERROR")
-            self.reconnect_attempts += 1
+            error_msg = str(e)
+            if "4000" in error_msg or "private use" in error_msg:
+                logger.warning(
+                    "Server indicated authentication issue, will re-authenticate")
+                self.token = None
+                self.auth_required = True
+                return False
+
+            logger.error(f"Connection failed: {error_msg}")
+            print_status("Connection", f"Failed: {error_msg}", "ERROR")
+            self.retry_count += 1
             return False
+
+    async def check_connection_health(self) -> bool:
+        """Check if the connection is healthy using ping"""
+        current_time = time.time()
+
+        # Skip health check if we haven't waited long enough since connection
+        if current_time - self.last_ping_time < self.connection_stabilization_time:
+            return True
+
+        try:
+            if self.ws:  # Simply check if ws exists
+                try:
+                    pong_waiter = await self.ws.ping()
+                    await asyncio.wait_for(pong_waiter, timeout=self.ping_timeout)
+                    self.heartbeat_failed_count = 0
+                    self.last_ping_time = current_time
+                    return True
+                except Exception as e:
+                    self.heartbeat_failed_count += 1
+                    if self.heartbeat_failed_count >= self.max_heartbeat_failures:
+                        logger.warning(
+                            f"Multiple heartbeat failures detected ({self.heartbeat_failed_count} failures)")
+                        return False
+                    # Log intermediate failures but don't disconnect yet
+                    logger.debug(
+                        f"Heartbeat check failed ({self.heartbeat_failed_count}/{self.max_heartbeat_failures})")
+            return True
+        except Exception as e:
+            logger.error(f"Connection check error: {str(e)}")
+            return False
+
+    def should_log_error(self, error_msg: str) -> bool:
+        """Rate limit error logging"""
+        current_time = time.time()
+        if (current_time - self.last_error_time) >= self.error_log_interval:
+            self.last_error_time = current_time
+            return True
+        return False
 
     async def listen(self, callback: Callable[[dict], None]):
         """Listen for data from server"""
         self.running = True
-        self.server_check_count = 0  # Reset counter at start
+        self.server_check_count = 0
 
         while self.running:
             try:
                 # Check if authentication is needed
                 if self.auth_required or not self.token:
+                    logger.info("Re-authentication required")
                     is_online, status_msg = await self.check_server_status()
                     if not is_online:
                         self.server_check_count += 1
                         if self.server_check_count >= self.max_server_check_retries:
                             logger.error(
                                 "Maximum server check attempts reached. Stopping client.")
-                            print(
-                                "ERROR: Maximum server check attempts reached. Stopping client.")
+                            print_status("Client",
+                                         "Maximum server check attempts reached. Stopping client.",
+                                         "ERROR")
                             self.running = False
                             return
 
                         logger.error(f"Server is not available: {status_msg}")
-                        print(f"ERROR: Server is not available - {status_msg}")
-                        print(
-                            f"Retry attempt {self.server_check_count} of {self.max_server_check_retries}")
-                        await asyncio.sleep(10)  # Wait before retry
+                        print_status("Server Check",
+                                     f"Server not available: {status_msg}",
+                                     "ERROR")
+                        await asyncio.sleep(self.get_retry_delay())
                         continue
 
-                    # Reset server check counter when server is available
+                    # Reset counters when server is available
                     self.server_check_count = 0
+                    self.retry_count = 0  # Reset retry count for fresh authentication
 
                     if not await self.authenticate():
                         if self.auth_retry_count >= self.max_auth_retries:
                             logger.error(
                                 "Maximum authentication attempts reached. Stopping client.")
-                            print(
-                                "ERROR: Maximum authentication attempts reached. Stopping client.")
+                            print_status("Authentication",
+                                         "Maximum attempts reached. Stopping client.",
+                                         "ERROR")
                             self.running = False
                             return
-                        delay = self.get_retry_delay(self.auth_retry_count)
-                        logger.error(
-                            f"Authentication failed, retrying in {delay} seconds...")
-                        print(
-                            f"Authentication failed, retrying in {delay} seconds...")
-                        await asyncio.sleep(delay)
+                        await asyncio.sleep(self.get_retry_delay())
                         continue
 
                 if not self.ws:
                     if not await self.connect():
                         if self.auth_required:
                             continue
-                        delay = self.get_retry_delay(self.reconnect_attempts)
-                        logger.info(
-                            f"Retrying connection in {delay} seconds...")
-                        await asyncio.sleep(delay)
+                        await asyncio.sleep(self.get_retry_delay())
                         continue
 
                 while self.running and self.ws:
                     try:
-                        message = await asyncio.wait_for(self.ws.recv(), timeout=1.0)
-                        data = json.loads(message)
-                        logger.debug(
-                            f"Received data: {data}, data type: {type(data)}")
-                        print(
-                            f"Print - from wall_api_client, Received data: {data}, data type: {type(data)}")
-                        await self.handle_message(callback, data)
-                    except asyncio.TimeoutError:
-                        continue
-                    except json.JSONDecodeError:
-                        logger.error("Invalid message format")
-                        continue
-                    except Exception as e:
-                        if "service restart" in str(e) or "4001" in str(e):
-                            self.auth_required = True
-                            self.ws = None
+                        # Periodically check connection health
+                        if not await self.check_connection_health():
                             logger.warning(
-                                "Authentication required. Reconnecting...")
+                                "Connection health check failed, reconnecting...")
+                            try:
+                                await self.ws.close(code=1001)  # Going away
+                            except Exception:
+                                pass  # Ignore errors during close
+                            self.ws = None
+                            self.heartbeat_failed_count = 0  # Reset counter
                             break
-                        else:
+
+                        try:
+                            message = await asyncio.wait_for(
+                                self.ws.recv(),
+                                timeout=self.ping_interval
+                            )
+
+                            # Reset heartbeat counter on successful message receipt
+                            self.heartbeat_failed_count = 0
+                            self.last_ping_time = time.time()
+
+                            data = json.loads(message)
+                            await self.handle_message(callback, data)
+
+                        except asyncio.TimeoutError:
+                            continue
+                        except json.JSONDecodeError:
+                            logger.error("Invalid message format")
+                            continue
+                        except Exception as e:
+                            if "ping timeout" in str(e).lower() or "keepalive" in str(e).lower():
+                                self.ws = None
+                                break
                             logger.error(f"Error processing message: {e}")
-                            break
+                            continue
+
+                    except Exception as e:
+                        logger.error(f"Connection loop error: {str(e)}")
+                        self.ws = None
+                        break
 
             except ConnectionClosed as e:
                 if not self.running:
                     return
-                if e.code in [1012, 4001]:  # Service Restart or Auth Error
-                    self.auth_required = True
-                    self.ws = None
-                    logger.warning("Server requires re-authentication")
-                    await asyncio.sleep(5)
-                else:
+                if self.should_log_error(f"Connection closed ({e.code})"):
                     logger.warning(f"Connection closed ({e.code}): {e.reason}")
-                    self.ws = None
-                    await self.handle_connection_closed(e)
+                await self.handle_connection_closed(e)
 
             except Exception as e:
                 if not self.running:
                     return
-                logger.error(f"Unexpected error: {e}")
+                if self.should_log_error(str(e)):
+                    logger.error(f"Unexpected error: {e}")
                 self.ws = None
-                await asyncio.sleep(self.get_retry_delay(self.reconnect_attempts))
+                await asyncio.sleep(self.get_retry_delay())
 
     async def handle_message(self, callback: Callable[[dict], None], data: dict):
         """Handle incoming messages with error handling"""
@@ -326,7 +420,23 @@ class DataClient:
 
     async def handle_connection_closed(self, e: ConnectionClosed):
         """Handle different connection closed scenarios"""
-        if e.code == 1000:  # Normal closure
+        if e.code == 4000:  # Private use (usually auth issues)
+            logger.warning("Server indicated authentication issue")
+            self.token = None
+            self.auth_required = True
+            self.retry_count = 0  # Reset retry count for re-auth
+            return
+        elif e.code == 1001:  # Going away
+            logger.info("Connection closing due to health check failure")
+            self.retry_count += 1
+        elif e.code == 1011:  # Internal error (usually ping timeout)
+            logger.warning(
+                "Connection ping timeout, will attempt to reconnect")
+            self.retry_count += 1
+            self.ws = None
+            await asyncio.sleep(self.get_retry_delay())
+            return
+        elif e.code == 1000:  # Normal closure
             logger.info("Connection closed normally")
         elif e.code == 4001:  # Authentication error
             logger.error("Authentication failed, clearing token")
@@ -339,8 +449,7 @@ class DataClient:
         else:
             logger.warning(f"Connection closed with code {e.code}")
 
-        delay = self.get_retry_delay(self.reconnect_attempts)
-        await asyncio.sleep(delay)
+        await asyncio.sleep(self.get_retry_delay())
 
     async def close(self):
         """Gracefully close the connection"""

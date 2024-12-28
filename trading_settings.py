@@ -25,7 +25,7 @@ TRADING_LEVEL = ['L0', 'L1', 'L2', 'L3', 'L4']
 
 TRADING_CONFIRMATION = True     # default to True, set to False if you want to stop trading
 TRADING_CASH_THRESHOLD = 1      # set the minimum cash balance requirement after each trade
-TRADING_CASH_CONTROL = False    # default to False, set to True if you don't want to use margin
+TRADING_CASH_MARGIN_CONTROL = True    # default to True, set to False if you want to use margin
 TRADING_ALLOW_PRE_POST_MARKET_ORDER = True  # default to True, set to False if you don't want to trade in pre/post market
 
 
