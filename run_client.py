@@ -4,7 +4,7 @@ import sys
 
 from brokers.broker_factory import BrokerFactory
 from env._secrete import SERVER_IP, API_CLIENT_ID, API_PASSWORD
-from trading_settings import decision_qty, TRADING_BROKER
+from trading_settings import decision_qty, TRADING_BROKER, TRADING_CONFIRMATION
 from utils.wall_api_client import DataClient, print_status
 from utils.logger_config import setup_logger
 
@@ -20,6 +20,20 @@ client_trader = BrokerFactory.get_broker(TRADING_BROKER)
 print_status("Client Runner", "Client Trader Initialized", "INFO")
 
 
+def trader_broker_setup_check():
+    try:
+        ret_code, data = client_trader.get_cash_balance_number_only()
+        if ret_code == client_trader.ret_ok_code:
+            print_status("Client Runner", "Broker setup successful", "SUCCESS")
+            return True
+        else:
+            print_status("Client Runner", "Broker setup failed, please check password or connection", "ERROR")
+            return False
+    except Exception as error:
+        print_status("Client Runner", f"Broker setup failed: {error}", "ERROR")
+        return False
+
+
 def signal_handler(signum, frame):
     """Handle shutdown signals"""
     logger.info("Shutdown signal received")
@@ -30,36 +44,44 @@ def signal_handler(signum, frame):
         shutdown_event.set()
 
 
-async def main():
-    global client
+def check_if_test_data(json_data):
+    for k, v in json_data.items():
+        if "test" in str(k):
+            return True
+        if "test" in str(v):
+            return True
+    return False
 
-    logger.info("Starting client process")
-    print_status("Client Runner", "Starting client process", "INFO")
 
-    def handle_data(json_data):
-        """Handle incoming data"""
-        logger.debug(f"Received data: {json_data}")
-        print_status("Data Handler",
-                     f"Received data: {json_data}, type: {type(json_data)}",
-                     "INFO")
-        print_status("Data Handler", "Starting to process data", "INFO")
+def handle_data(json_data):
+    """Handle incoming data"""
+    logger.debug(f"Received data: {json_data}")
+    print_status("Data Handler",
+                 f"Received data: {json_data}, type: {type(json_data)}",
+                 "INFO")
+    print_status("Data Handler", "Starting to process data", "INFO")
 
-        """
-        json_data = {
-                "time": time_now,
-                "ticker": stock,
-                "price": price,
-                "level": level,
-                "direction": direction, # Bull or Bear
-                "depth": depth,
-                "codeNum": codeNum,
-                "qty": qty, (Optional)
-            }
-        """
-        if "tset" not in json_data.keys() and "test" not in json_data.values():
-            qty = decision_qty(json_data)
-            called_by = "client_runner"
-            if qty > 0:
+    """
+    json_data = {
+            "time": time_now,
+            "ticker": stock,
+            "price": price,
+            "level": level,
+            "direction": direction, # Bull or Bear
+            "depth": depth,
+            "codeNum": codeNum,
+            "qty": qty, (Optional)
+        }
+    """
+    if check_if_test_data(json_data):
+        # tet data received, no trade made
+        print_status("Data Handler", "Test data received, no trade made", "INFO")
+    else:
+        # trading data received, make trade
+        qty = decision_qty(json_data)
+        called_by = "client_runner"
+        if qty > 0:
+            if TRADING_CONFIRMATION:
                 try:
                     print_status("Data Handler", "Making trade...", "INFO")
                     client_trader.broker_make_trade(json_data["direction"], called_by, json_data["ticker"], qty,
@@ -67,9 +89,16 @@ async def main():
                 except Exception as error:
                     print_status("Data Handler", f"Error making trade: {error}", "ERROR")
             else:
-                print_status("Data Handler", "No trade made, qty decision is 0", "INFO")
+                print_status("Data Handler", "No trade made, trading not confirmed", "INFO")
         else:
-            print_status("Data Handler", "Test data received, no trade made", "INFO")
+            print_status("Data Handler", "No trade made, qty decision is 0", "INFO")
+
+
+async def main():
+    global client
+
+    logger.info("Starting client process")
+    print_status("Client Runner", "Starting client process", "INFO")
 
     # Initialize client
     client = DataClient(
@@ -133,18 +162,22 @@ async def main():
 
 
 if __name__ == "__main__":
+    if trader_broker_setup_check():
+        try:
+            logger.info("Initializing client application")
+            print_status("Client Runner",
+                         "Initializing client application", "INFO")
 
-    try:
-        logger.info("Initializing client application")
-        print_status("Client Runner",
-                     "Initializing client application", "INFO")
+            # start the client runner, listening for data
+            asyncio.run(main())
 
-        # start the client runner, listening for data
-        asyncio.run(main())
-
-    except KeyboardInterrupt:
-        logger.warning("Program interrupted by user")
-        print_status("Client Runner", "Program interrupted by user", "WARNING")
-    except Exception as e:
-        logger.error(f"Fatal error in main: {e}")
-        print_status("Client Runner", f"Fatal error: {str(e)}", "ERROR")
+        except KeyboardInterrupt:
+            logger.warning("Program interrupted by user")
+            print_status("Client Runner", "Program interrupted by user", "WARNING")
+        except Exception as e:
+            logger.error(f"Fatal error in main: {e}")
+            print_status("Client Runner", f"Fatal error: {str(e)}", "ERROR")
+    else:
+        logger.error("Broker setup failed, exiting... Please check required settings")
+        print_status("Client Runner", "Broker setup failed, exiting... Please check required settings", "ERROR")
+        sys.exit(1)

@@ -10,7 +10,7 @@ Angus
 from abc import ABC, abstractmethod
 
 from utils.logger_config import setup_logger
-from trading_settings import TRADING_LIST, TRADING_CONFIRMATION, TRADING_CASH_CONTROL, TRADING_CASH_THRESHOLD
+from trading_settings import TRADING_LIST, TRADING_CONFIRMATION, TRADING_CASH_MARGIN_CONTROL, TRADING_CASH_THRESHOLD
 from utils.time_tool import is_market_hours, get_current_time
 
 
@@ -125,7 +125,7 @@ class BaseBroker(ABC):
                     self.logger.warning(data)
                     return
 
-                if current_cash >= TRADING_CASH_THRESHOLD and current_cash > quantity * price or not TRADING_CASH_CONTROL:
+                if current_cash >= TRADING_CASH_THRESHOLD and current_cash > quantity * price or not TRADING_CASH_MARGIN_CONTROL:
                     if is_market_hours():
                         # market order
                         ret_status_code, order_data = self.market_buy(stock, quantity, price)
