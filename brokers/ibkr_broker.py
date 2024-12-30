@@ -99,9 +99,13 @@ class IBKRBroker(BaseBroker):
         
         try:
             account_values = self.ib.accountValues(IBKR_ACCOUNT_NUMBER)
-            cash_balance = next((v.value for v in account_values if v.tag == 'CashBalance'), None)
-            self.logger.info(f"Retrieved cash balance: {cash_balance}")
-            return self.ret_ok_code, float(cash_balance)
+            is_margin_account = next((True for v in account_values if v.tag == 'DayTradesRemaining'), False)
+            if is_margin_account:
+                available_funds = next((v.value for v in account_values if v.tag == 'CashBalance'), None)
+            else:
+                available_funds = next((v.value for v in account_values if v.tag == 'SettledCash'), None)
+            self.logger.info(f"Retrieved cash balance: {available_funds}")
+            return self.ret_ok_code, float(available_funds)
         except Exception as e:
             self.logger.error(f"Error retrieving cash balance: {e}")
             return self.ret_error_code, None
