@@ -10,6 +10,22 @@ TRADING_BROKER = 'MooMoo'  # set up the broker name based on the broker class na
 'SCHWAB': SchwabBroker,
 """
 
+""" ‼️ Important, please revise fund, you want to trade for each stock ‼️ """
+INITIAL_FUND_FOR_TQQQ = 100000  # set the initial trading fund for tqqq, it will be used for qty calculation
+INITIAL_FUND_FOR_SOXL = 100000  # set the initial trading fund for soxl, it will be used for qty calculation
+INITIAL_FUND_FOR_IBIT = 100000  # set the initial trading fund for ibit, it will be used for qty calculation
+
+TRADING_LIST = ['TQQQ', 'SOXL', 'IBIT']  # set the trading list, delete the stock if you don't want to trade
+TRADING_LEVEL = ['L0', 'L1', 'L2', 'L3', 'L4']  # set the trading level, delete the level if you don't want to trade
+
+TRADING_CONFIRMATION = True  # default to True, set to False if you want to stop trading
+TRADING_CASH_THRESHOLD = 1  # set the minimum cash balance requirement after each trade
+TRADING_CASH_MARGIN_CONTROL = True  # default to True, set to False if you want to use margin
+TRADING_ALLOW_PRE_POST_MARKET_ORDER = True  # default to True, set to False if you don't want to trade in pre/post market
+
+
+""" Please don't change the code below, unless you know what you are doing """
+# please don't change the default setting, unless you know what you are doing
 level_positions = {
     # this is the default setting, which corresponds to the trading strategy for WallTrading Bot
     # please don't change the default setting, unless you know what you are doing
@@ -36,18 +52,7 @@ level_positions = {
     }
 }
 
-""" ‼️ Important, please revise fund, you want to trade for each stock ‼️ """
-INITIAL_FUND_FOR_TQQQ = 100000  # set the initial trading fund for tqqq, it will be used for qty calculation
-INITIAL_FUND_FOR_SOXL = 100000  # set the initial trading fund for soxl, it will be used for qty calculation
-INITIAL_FUND_FOR_IBIT = 100000  # set the initial trading fund for ibit, it will be used for qty calculation
-
-TRADING_LIST = ['TQQQ', 'SOXL', 'IBIT']  # set the trading list, delete the stock if you don't want to trade
-TRADING_LEVEL = ['L0', 'L1', 'L2', 'L3', 'L4']  # set the trading level, delete the level if you don't want to trade
-
-TRADING_CONFIRMATION = True  # default to True, set to False if you want to stop trading
-TRADING_CASH_THRESHOLD = 1  # set the minimum cash balance requirement after each trade
-TRADING_CASH_MARGIN_CONTROL = True  # default to True, set to False if you want to use margin
-TRADING_ALLOW_PRE_POST_MARKET_ORDER = True  # default to True, set to False if you don't want to trade in pre/post market
+""" Please don't change the code below: """
 
 
 def decision_qty(json_data):
