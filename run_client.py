@@ -74,7 +74,7 @@ def handle_data(json_data):
         }
     """
     if check_if_test_data(json_data):
-        # tet data received, no trade made
+        # test data received, no trade made
         print_status("Data Handler", "Test data received, no trade made", "INFO")
     else:
         # trading data received, make trade
