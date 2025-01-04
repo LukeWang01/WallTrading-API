@@ -10,6 +10,7 @@ Angus
 from brokers.base_broker import BaseBroker
 from ib_insync import IB, Stock, MarketOrder, LimitOrder, Trade
 import time
+import nest_asyncio
 
 from env._secrete import IBKR_account_number
 
@@ -39,6 +40,7 @@ FILL_OUTSIDE_MARKET_HOURS = True  # enable if order fills on extended hours
 
 """ ⏫ Broker Setup ⏫ """
 
+nest_asyncio.apply()
 
 class IBKRBroker(BaseBroker):
     def __init__(self):
