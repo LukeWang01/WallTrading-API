@@ -1,6 +1,8 @@
 # Description: This file contains the settings for trading.
+from utils.wall_api_client import print_status
 
 
+""" Step 1: ‼️ Important. Set up the broker name ‼️ """
 TRADING_BROKER = 'MooMoo'  # set up the broker name based on the broker class name
 """
 'IBKR': IBKRBroker,
@@ -10,14 +12,27 @@ TRADING_BROKER = 'MooMoo'  # set up the broker name based on the broker class na
 'SCHWAB': SchwabBroker,
 """
 
-""" ‼️ Important, please revise fund, you want to trade for each stock ‼️ """
-INITIAL_FUND_FOR_TQQQ = 1  # set the initial trading fund for tqqq, it will be used for qty calculation
-INITIAL_FUND_FOR_SOXL = 1  # set the initial trading fund for soxl, it will be used for qty calculation
-INITIAL_FUND_FOR_IBIT = 1  # set the initial trading fund for ibit, it will be used for qty calculation
 
+""" Step 2: ‼️ Important. Please choose qty decision mode, revise qty setting for each stock ‼️ """
+# Option 1: FUND_MODE, calculate the trading quantity based on the initial fund
+FUND_MODE = True  # default to True, set to False if you want to use fixed qty
+INITIAL_FUND_FOR_TQQQ = 1  # default to 1, set the initial trading fund for tqqq, it will be used for qty calculation
+INITIAL_FUND_FOR_SOXL = 1  # default to 1, set the initial trading fund for soxl, it will be used for qty calculation
+INITIAL_FUND_FOR_IBIT = 1  # default to 1, set the initial trading fund for ibit, it will be used for qty calculation
+
+# Option 2: QTY_MODE, calculate the trading quantity based on the fixed qty
+QTY_MODE = False  # default to False, set to False if you want to use fixed qty
+ONE_PERCENT_TRADING_QTY_FOR_TQQQ = 1  # default to 1, set the trading quantity for 1% of the initial fund
+ONE_PERCENT_TRADING_QTY_FOR_SOXL = 1  # default to 1, set the trading quantity for 1% of the initial fund
+ONE_PERCENT_TRADING_QTY_FOR_IBIT = 1  # default to 1, set the trading quantity for 1% of the initial fund
+
+
+""" Step 3: ‼️ Important. Please choose which level and which ticker you want to trade ‼️ """
 TRADING_LIST = ['TQQQ', 'SOXL', 'IBIT']  # set the trading list, delete the stock if you don't want to trade
 TRADING_LEVEL = ['L0', 'L1', 'L2', 'L3', 'L4']  # set the trading level, delete the level if you don't want to trade
 
+
+""" Step 4 (Optional): Account settings, don't change the default setting unless you know what you are doing """
 TRADING_CONFIRMATION = True  # default to True, set to False if you want to stop trading
 TRADING_CASH_THRESHOLD = 1  # set the minimum cash balance requirement after each trade
 TRADING_CASH_MARGIN_CONTROL = True  # default to True, set to False if you want to use margin
@@ -25,7 +40,6 @@ TRADING_ALLOW_PRE_POST_MARKET_ORDER = True  # default to True, set to False if y
 
 
 """ Please don't change the code below, unless you know what you are doing """
-# please don't change the default setting, unless you know what you are doing
 level_positions = {
     # this is the default setting, which corresponds to the trading strategy for WallTrading Bot
     # please don't change the default setting, unless you know what you are doing
@@ -66,15 +80,6 @@ def decision_qty(json_data):
     if json_data["level"] not in TRADING_LEVEL:
         return 0
 
-    initial_fund = 0
-
-    if json_data["ticker"] == "TQQQ":
-        initial_fund = INITIAL_FUND_FOR_TQQQ
-    elif json_data["ticker"] == "SOXL":
-        initial_fund = INITIAL_FUND_FOR_SOXL
-    elif json_data["ticker"] == "IBIT":
-        initial_fund = INITIAL_FUND_FOR_IBIT
-
     level = int(json_data["level"][1:])
     depth = int(json_data["depth"])
     codeNum = int(json_data["codeNum"])
@@ -88,6 +93,40 @@ def decision_qty(json_data):
         if codeNum in level_positions[level]['code']:
             position_pct += level_positions[level]['code'][codeNum]
 
-    qty = int((position_pct * initial_fund) / price)
+    # calculate the trading quantity, FUND_MODE
+    if FUND_MODE:
+        initial_fund = 0
 
-    return qty
+        if json_data["ticker"] == "TQQQ":
+            initial_fund = INITIAL_FUND_FOR_TQQQ
+        elif json_data["ticker"] == "SOXL":
+            initial_fund = INITIAL_FUND_FOR_SOXL
+        elif json_data["ticker"] == "IBIT":
+            initial_fund = INITIAL_FUND_FOR_IBIT
+        qty = int((position_pct * initial_fund) / price)
+        if qty < 1:
+            qty = 1
+            print_status("Decision QTY Handler", f"Warning, qty reset to: {qty}, please check the trading settings", "WARNING")
+
+        return qty, position_pct
+
+    # calculate the trading quantity, QTY_MODE
+    elif QTY_MODE:
+        qty_one_percent = 1
+        if json_data["ticker"] == "TQQQ":
+            qty_one_percent = ONE_PERCENT_TRADING_QTY_FOR_TQQQ
+        elif json_data["ticker"] == "SOXL":
+            qty_one_percent = ONE_PERCENT_TRADING_QTY_FOR_SOXL
+        elif json_data["ticker"] == "IBIT":
+            qty_one_percent = ONE_PERCENT_TRADING_QTY_FOR_IBIT
+        qty = int(position_pct * 100) * qty_one_percent
+        if qty < 1:
+            qty = 1
+            print_status("Decision QTY Handler", f"Warning, qty reset to: {qty}, please check the trading settings", "WARNING")
+
+        return qty, position_pct
+
+    else:
+        print_status("Decision QTY Handler", f"Warning, qty is 0, please check the trading settings",
+                     "WARNING")
+        return 0, position_pct

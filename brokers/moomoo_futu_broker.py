@@ -5,11 +5,11 @@
 # Programming Trading based on MooMoo API/OpenD
 
 """
-# updated: 11/17/2024, final version for open source only
+# created: 11/17/2024, final version for open source only
 # Version 2.0
 # for more info, please visit: https://www.patreon.com/LookAtWallStreet
 
-# updated: 12/20/2024, final version for open source only
+# created: 12/20/2024, final version for WallTrading API only
 # Version 0.1.1
 # for more info, please visit: https://www.patreon.com/LookAtWallStreet
 Dev. Team:
@@ -99,7 +99,7 @@ class MooMooFutuBroker(BaseBroker):
         if TRADING_ENVIRONMENT == TrdEnv.REAL:
             ret, data = self.trade_context.unlock_trade(TRADING_PWD)
             if ret != RET_OK:
-                print_status("MooMoo/Futu Trader", "Unlock Trade failed", "ERROR")
+                print_status("MooMoo/Futu Trader", f"Unlock Trade failed, {data}", "ERROR")
                 return False
             print_status("MooMoo/Futu Trader", "Unlock Trade success", "SUCCESS")
         return True
