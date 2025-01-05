@@ -1,5 +1,5 @@
 """
-# updated: 12/20/2024, final version for open source only
+# created: 12/20/2024, final version for open source only
 # Version 0.1.1
 # for more info, please visit: https://www.patreon.com/LookAtWallStreet
 Dev. Team:
@@ -10,8 +10,11 @@ Angus
 from brokers.base_broker import BaseBroker
 from ib_insync import IB, Stock, MarketOrder, LimitOrder, Trade
 import time
-
 from env._secrete import IBKR_account_number
+
+import nest_asyncio
+
+nest_asyncio.apply()
 
 """ ⬇️ Broker Setup ⬇️ """
 # IBKR API Docs: https://ib-insync.readthedocs.io/readme.html
@@ -79,7 +82,7 @@ class IBKRBroker(BaseBroker):
             self.logger.error(f"Trader: Get Account Info failed: not connected")
             print("Trader: Get Account Info failed: not connected")
             return self.ret_error_code, None
-        
+
         try:
             account_summary = self.ib.accountSummary(IBKR_ACCOUNT_NUMBER)
             self.logger.info(f"Retrieved account info: {account_summary}")
@@ -89,6 +92,7 @@ class IBKRBroker(BaseBroker):
             return self.ret_ok_code, None
         finally:
             self.ib.disconnect()
+            self.logger.info("Disconnected from IBKR")
 
     def get_cash_balance(self):
         self.connect()
@@ -96,7 +100,7 @@ class IBKRBroker(BaseBroker):
             self.logger.error(f"Trader: Get Cash Balance failed: not connected")
             print("Trader: Get Cash Balance failed: not connected")
             return self.ret_error_code, None
-        
+
         try:
             account_values = self.ib.accountValues(IBKR_ACCOUNT_NUMBER)
             is_margin_account = next((True for v in account_values if v.tag == 'DayTradesRemaining'), False)
@@ -114,14 +118,14 @@ class IBKRBroker(BaseBroker):
 
     def get_cash_balance_number_only(self):
         return self.get_cash_balance()
-    
+
     def get_positions(self):
         self.connect()
         if not self.ib.isConnected():
             self.logger.error(f"Trader: Get Positions failed: not connected")
             print("Trader: Get Positions failed: not connected")
             return self.ret_error_code, None
-        
+
         try:
             positions = self.ib.positions(IBKR_ACCOUNT_NUMBER)
             self.logger.info(f"Retrieved positions: {positions}")
@@ -146,7 +150,7 @@ class IBKRBroker(BaseBroker):
             self.logger.error(f"Trader: Market Sell failed: not connected")
             print("Trader: Market Sell failed: not connected")
             return self.ret_error_code, None
-        
+
         try:
             contract = Stock(stock, 'SMART', 'USD')
             order = MarketOrder('sell', quantity, account=IBKR_ACCOUNT_NUMBER)
@@ -164,7 +168,7 @@ class IBKRBroker(BaseBroker):
             self.logger.error(f"Trader: Market Buy failed: not connected")
             print("Trader: Market Buy failed: not connected")
             return self.ret_error_code, None
-        
+
         try:
             contract = Stock(stock, 'SMART', 'USD')
             order = MarketOrder('buy', quantity, account=IBKR_ACCOUNT_NUMBER)
@@ -182,7 +186,7 @@ class IBKRBroker(BaseBroker):
             self.logger.error(f"Trader: Limit Sell failed: not connected")
             print("Trader: Limit Sell failed: not connected")
             return self.ret_error_code, None
-        
+
         try:
             contract = Stock(stock, 'SMART', 'USD')
             order = LimitOrder('sell', quantity, price, account=IBKR_ACCOUNT_NUMBER)
@@ -200,7 +204,7 @@ class IBKRBroker(BaseBroker):
             self.logger.error(f"Trader: Limit Buy failed: not connected")
             print("Trader: Limit Buy failed: not connected")
             return self.ret_error_code, None
-        
+
         try:
             contract = Stock(stock, 'SMART', 'USD')
             order = LimitOrder('buy', quantity, price, account=IBKR_ACCOUNT_NUMBER)
@@ -221,7 +225,7 @@ class IBKRBroker(BaseBroker):
                 return trade
         self.logger.error(f"Trade timed out after {timeout} seconds: {trade}")
         return None
-    
+
     def _handle_trade_timeout_limit(self, trade: Trade, timeout: int = 30):
         start_time = time.time()
         while time.time() - start_time < timeout:

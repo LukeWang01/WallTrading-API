@@ -7,7 +7,7 @@ import json
 import requests
 from typing import Callable, Optional, Tuple
 import os
-from requests.exceptions import RequestException, ConnectionError, Timeout
+from requests.exceptions import ConnectionError, Timeout
 import time
 
 from utils.logger_config import setup_logger
@@ -56,7 +56,7 @@ class DataClient:
         self.reconnect_attempts = 0
         self.max_reconnect_attempts = 5
         self.base_retry_delay = 5  # Base delay in seconds
-        self.max_retry_delay = 300  # Maximum delay (5 minutes)
+        self.max_retry_delay = 1800  # Maximum delay (30 minutes)
         self.retry_count = 0  # Track retry attempts
         self.max_retries = 10  # Maximum number of retries before giving up
         self.max_auth_retries = 3
@@ -140,6 +140,7 @@ class DataClient:
                 self.token = response.json()["access_token"]
                 self.reconnect_attempts = 0
                 self.auth_retry_count = 0
+                self.retry_count = 0
                 logger.info("Authentication successful")
                 print_status(
                     "Authentication", "Successfully authenticated with server", "SUCCESS")
@@ -259,33 +260,49 @@ class DataClient:
             return False
 
     async def check_connection_health(self) -> bool:
-        """Check if the connection is healthy using ping"""
-        current_time = time.time()
-
-        # Skip health check if we haven't waited long enough since connection
-        if current_time - self.last_ping_time < self.connection_stabilization_time:
-            return True
-
+        """Check if connection is healthy using ping/pong"""
         try:
-            if self.ws:  # Simply check if ws exists
-                try:
-                    pong_waiter = await self.ws.ping()
-                    await asyncio.wait_for(pong_waiter, timeout=self.ping_timeout)
-                    self.heartbeat_failed_count = 0
-                    self.last_ping_time = current_time
-                    return True
-                except Exception as e:
-                    self.heartbeat_failed_count += 1
-                    if self.heartbeat_failed_count >= self.max_heartbeat_failures:
-                        logger.warning(
-                            f"Multiple heartbeat failures detected ({self.heartbeat_failed_count} failures)")
-                        return False
-                    # Log intermediate failures but don't disconnect yet
-                    logger.debug(
-                        f"Heartbeat check failed ({self.heartbeat_failed_count}/{self.max_heartbeat_failures})")
-            return True
+            if not self.ws:
+                return False
+
+            # Add timeout to ping
+            pong_waiter = None
+            try:
+                pong_waiter = await asyncio.wait_for(
+                    self.ws.ping(),
+                    timeout=self.ping_timeout
+                )
+                await pong_waiter
+                self.heartbeat_failed_count = 0
+                self.last_ping_time = time.time()
+                return True
+            except (asyncio.TimeoutError, asyncio.InvalidStateError,
+                    ConnectionClosed, AttributeError) as e:
+                self.heartbeat_failed_count += 1
+
+                # Special handling for server restart
+                if isinstance(e, ConnectionClosed) and e.code == 1012:
+                    logger.info("Server restart detected during health check")
+                    self.heartbeat_failed_count = self.max_heartbeat_failures
+                    return False
+
+                logger.debug(
+                    f"Heartbeat check failed ({self.heartbeat_failed_count}/3): {str(e)}")
+                if self.heartbeat_failed_count >= self.max_heartbeat_failures:
+                    logger.warning("Multiple heartbeat failures detected "
+                                   f"({self.heartbeat_failed_count} failures)")
+                    return False
+                return True
+            finally:
+                if pong_waiter and not pong_waiter.done():
+                    try:
+                        pong_waiter.cancel()
+                    except Exception:
+                        pass
+
         except Exception as e:
-            logger.error(f"Connection check error: {str(e)}")
+            logger.error(f"Error in connection health check: {str(e)}")
+            self.heartbeat_failed_count += 1
             return False
 
     def should_log_error(self, error_msg: str) -> bool:
@@ -384,7 +401,7 @@ class DataClient:
                             if "ping timeout" in str(e).lower() or "keepalive" in str(e).lower():
                                 self.ws = None
                                 break
-                            logger.error(f"Error processing message: {e}")
+                            logger.warning(f"Error processing message: {e}")
                             continue
 
                     except Exception as e:
@@ -420,15 +437,28 @@ class DataClient:
 
     async def handle_connection_closed(self, e: ConnectionClosed):
         """Handle different connection closed scenarios"""
-        if e.code == 4000:  # Private use (usually auth issues)
+        if e.code == 1012:  # Service Restart
+            logger.info("Server is restarting, will attempt to reconnect...")
+            print_status("Connection",
+                         "Server is restarting, will attempt to reconnect...",
+                         "WARNING")
+            # Reset counters for clean reconnection
+            self.heartbeat_failed_count = 0
+            self.retry_count = 0
+            await asyncio.sleep(5)  # Give server time to restart
+            return
+
+        elif e.code == 4000:  # Private use (usually auth issues)
             logger.warning("Server indicated authentication issue")
             self.token = None
             self.auth_required = True
             self.retry_count = 0  # Reset retry count for re-auth
             return
+
         elif e.code == 1001:  # Going away
             logger.info("Connection closing due to health check failure")
             self.retry_count += 1
+
         elif e.code == 1011:  # Internal error (usually ping timeout)
             logger.warning(
                 "Connection ping timeout, will attempt to reconnect")
@@ -436,16 +466,14 @@ class DataClient:
             self.ws = None
             await asyncio.sleep(self.get_retry_delay())
             return
+
         elif e.code == 1000:  # Normal closure
             logger.info("Connection closed normally")
+
         elif e.code == 4001:  # Authentication error
             logger.error("Authentication failed, clearing token")
             self.token = None
-        elif e.code == 4000:  # Server error
-            logger.error("Server error, will retry connection")
-        elif e.code == 1012:  # Service restart
-            logger.warning("Server is restarting")
-            print("Server is restarting. Will attempt to reconnect...")
+
         else:
             logger.warning(f"Connection closed with code {e.code}")
 
