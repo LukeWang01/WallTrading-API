@@ -78,20 +78,21 @@ def handle_data(json_data):
         print_status("Data Handler", "Test data received, no trade made", "INFO")
     else:
         # trading data received, make trade
-        qty = decision_qty(json_data)
-        called_by = "client_runner"
-        if qty > 0:
+        qty_num, qty_pct = decision_qty(json_data)
+        print_status("Data Handler", f"Decision qty: {qty_num}, Decision original qty percent: {qty_pct}", "INFO")
+        called_by = "run_client.py - handle_data"
+        if qty_num > 0:
             if TRADING_CONFIRMATION:
                 try:
                     print_status("Data Handler", "Making trade...", "INFO")
-                    client_trader.broker_make_trade(json_data["direction"], called_by, json_data["ticker"], qty,
+                    client_trader.broker_make_trade(json_data["direction"], called_by, json_data["ticker"], qty_num,
                                                     json_data["price"])
                 except Exception as error:
                     print_status("Data Handler", f"Error making trade: {error}", "ERROR")
             else:
                 print_status("Data Handler", "No trade made, trading not confirmed", "INFO")
         else:
-            print_status("Data Handler", "No trade made, qty decision is 0", "INFO")
+            print_status("Data Handler", "No trade made, qty decision is 0", "WARNING")
 
 
 async def main():
