@@ -21,7 +21,7 @@ INITIAL_FUND_FOR_SOXL = 1  # default to 1, set the initial trading fund for soxl
 INITIAL_FUND_FOR_IBIT = 1  # default to 1, set the initial trading fund for ibit, it will be used for qty calculation
 
 # Option 2: QTY_MODE, calculate the trading quantity based on the fixed qty
-QTY_MODE = False  # default to False, set to False if you want to use fixed qty
+QTY_MODE = False  # default to False, set to True if you want to use fixed qty
 ONE_PERCENT_TRADING_QTY_FOR_TQQQ = 1  # default to 1, set the trading quantity for 1% of the initial fund
 ONE_PERCENT_TRADING_QTY_FOR_SOXL = 1  # default to 1, set the trading quantity for 1% of the initial fund
 ONE_PERCENT_TRADING_QTY_FOR_IBIT = 1  # default to 1, set the trading quantity for 1% of the initial fund
