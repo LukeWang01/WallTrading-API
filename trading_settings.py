@@ -74,11 +74,6 @@ def decision_qty(json_data):
     :param json_data:
     :return: trading quantity
     """
-    # check if the trading data is in the trading list and trading level
-    if json_data["ticker"] not in TRADING_LIST:
-        return 0
-    if json_data["level"] not in TRADING_LEVEL:
-        return 0
 
     level = int(json_data["level"][1:])
     depth = int(json_data["depth"])
@@ -92,6 +87,12 @@ def decision_qty(json_data):
             position_pct += level_positions[level]['depth'][depth]
         if codeNum in level_positions[level]['code']:
             position_pct += level_positions[level]['code'][codeNum]
+
+    # check if the trading data is in the trading list and trading level
+    if json_data["ticker"] not in TRADING_LIST:
+        return 0, position_pct
+    if json_data["level"] not in TRADING_LEVEL:
+        return 0, position_pct
 
     # calculate the trading quantity, FUND_MODE
     if FUND_MODE:
