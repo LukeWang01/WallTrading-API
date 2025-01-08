@@ -52,7 +52,7 @@ class BaseBroker(ABC):
         pass
 
     @abstractmethod
-    def get_cash_balance_number_only(self):
+    def get_cash_balance_number_only(self) -> tuple[int, float]:
         """
         Get the cash balance number only
         :return: status code, cash balance
@@ -158,7 +158,7 @@ class BaseBroker(ABC):
                             self.logger.error(order_data)
                 else:
                     # order failed
-                    data = f"⚠️⚠️⚠️{get_current_time()}: Buy: {stock}, {quantity}, {price} Failed: no enough cash, below the threshold, or wrong margin settings, by: {called_by}⚠️⚠️⚠️"
+                    data = f"⚠️⚠️⚠️{get_current_time()}: Buy: {stock}, {quantity}, {price} Failed: no enough cash, below the threshold, or wrong margin settings, {current_cash} - {TRADING_CASH_THRESHOLD} - {quantity * price} - {TRADING_CASH_MARGIN_CONTROL}, by: {called_by}⚠️⚠️⚠️"
                     print(data)
                     self.logger.error(data)
 
@@ -174,7 +174,7 @@ class BaseBroker(ABC):
 
                 if quantity >= position_by_ticker - 2:
                     # set the sell quantity at least less than the current position - 1
-                    data = f"⚠️⚠️⚠️{get_current_time()}: Sell: {stock}, {quantity}, {price} failed, no enough position to sell, skipped., by: {called_by}"
+                    data = f"⚠️⚠️⚠️{get_current_time()}: Sell: {stock}, {quantity}, {price} failed, no enough position to sell, skipped, {quantity} - {position_by_ticker}, by: {called_by}"
                     print(data)
                     self.logger.warning(data)
                     ok_to_sell = False
@@ -213,6 +213,6 @@ class BaseBroker(ABC):
 
         # if stock not in the trading list, skip the order
         else:
-            data = f"{get_current_time()}: Stock({stock}) is not in the trading list, or the trading is disable, skip the order, by: {called_by}"
+            data = f"{get_current_time()}: Stock({stock}) is not in the trading list:{TRADING_LIST}, or the trading is disable:{TRADING_CONFIRMATION}, skip the order, by: {called_by}"
             print(data)
             self.logger.warning(data)

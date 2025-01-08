@@ -69,10 +69,10 @@ level_positions = {
 """ Please don't change the code below: """
 
 
-def decision_qty(json_data):
+def decision_qty(json_data) -> tuple[int, float]:
     """
     :param json_data:
-    :return: trading quantity
+    :return: qty, position_pct
     """
 
     level = int(json_data["level"][1:])
@@ -90,8 +90,10 @@ def decision_qty(json_data):
 
     # check if the trading data is in the trading list and trading level
     if json_data["ticker"] not in TRADING_LIST:
+        print_status("Decision QTY Handler", f"Warning, ticker not in the trading list, qty is 0, please check the trading settings", "WARNING")
         return 0, position_pct
     if json_data["level"] not in TRADING_LEVEL:
+        print_status("Decision QTY Handler", f"Warning, level not in the trading level, qty is 0, please check the trading settings", "WARNING")
         return 0, position_pct
 
     # calculate the trading quantity, FUND_MODE
@@ -105,10 +107,11 @@ def decision_qty(json_data):
         elif json_data["ticker"] == "IBIT":
             initial_fund = INITIAL_FUND_FOR_IBIT
         qty = int((position_pct * initial_fund) / price)
-        if qty < 1:
-            qty = 1
-            print_status("Decision QTY Handler", f"Warning, qty reset to: {qty}, please check the trading settings", "WARNING")
-
+        # if qty < 1:
+        #     qty = 1
+        #     print_status("Decision QTY Handler - FUND MODE", f"Warning, qty reset to: {qty}, please check the trading settings", "WARNING")
+        # delete, choose to strictly follow the position percentage
+        print_status("Decision QTY Handler - FUND MODE", f"Decision, qty is {qty}, please check the trading settings", "INFO")
         return qty, position_pct
 
     # calculate the trading quantity, QTY_MODE
@@ -121,13 +124,14 @@ def decision_qty(json_data):
         elif json_data["ticker"] == "IBIT":
             qty_one_percent = ONE_PERCENT_TRADING_QTY_FOR_IBIT
         qty = int(position_pct * 100) * qty_one_percent
-        if qty < 1:
-            qty = 1
-            print_status("Decision QTY Handler", f"Warning, qty reset to: {qty}, please check the trading settings", "WARNING")
-
+        # if qty < 1:
+        #     qty = 1
+        #     print_status("Decision QTY Handler - QTY MODE", f"Warning, qty reset to: {qty}, please check the trading settings", "WARNING")
+        # delete, choose to strictly follow the position percentage
+        print_status("Decision QTY Handler - QTY MODE", f"Decision, qty is {qty}, please check the trading settings", "INFO")
         return qty, position_pct
 
     else:
-        print_status("Decision QTY Handler", f"Warning, qty is 0, please check the trading settings",
+        print_status("Decision QTY Handler", f"Warning, wrong decision mode, qty is 0, please check the trading settings",
                      "WARNING")
         return 0, position_pct
