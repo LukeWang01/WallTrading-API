@@ -7,6 +7,8 @@ Luke
 Angus
 """
 
+from typing import Optional, Tuple
+
 from brokers.base_broker import BaseBroker
 from schwab.auth import easy_client, client_from_login_flow, client_from_manual_flow
 from schwab.orders.equities import equity_buy_limit, equity_sell_limit, equity_buy_market, equity_sell_market
@@ -82,7 +84,7 @@ class SchwabBroker(BaseBroker):
         self.logger.error("Failed to connect to Schwab after maximum attempts")
         return False
 
-    def _get_account_hash(self):
+    def _get_account_hash(self) -> Tuple[int, Optional[str]]:
         resp = self.client.get_account_numbers()
         if resp.status_code != httpx.codes.OK:
             self.logger.error(f"Trader: Get Account Hash failed: {resp.json()['message']}")
@@ -101,7 +103,7 @@ class SchwabBroker(BaseBroker):
             print("Trader: Get Account Hash failed: wrong account number")
             return self.ret_error_code, None
 
-    def get_account_info(self):
+    def get_account_info(self) -> Tuple[int, Optional[dict]]:
         self.connect()
         if not self.connected:
             self.logger.error(f"Trader: Get Account Info failed: not connected")
@@ -137,7 +139,7 @@ class SchwabBroker(BaseBroker):
 
         return self.ret_ok_code, acct_info
 
-    def get_cash_balance(self):
+    def get_cash_balance(self) -> Tuple[int, Optional[float]]:
         acct_ret, acct_info = self.get_account_info()
         if acct_ret == self.ret_ok_code:
             self.logger.info(f"Retrieved cash balance: {acct_info['cash']}")
@@ -145,10 +147,10 @@ class SchwabBroker(BaseBroker):
         else:
             return self.ret_error_code, None
 
-    def get_cash_balance_number_only(self):
+    def get_cash_balance_number_only(self) -> Tuple[int, Optional[float]]:
         return self.get_cash_balance()
 
-    def get_positions(self):
+    def get_positions(self) -> Tuple[int, Optional[dict]]:
         self.connect()
         if not self.connected:
             self.logger.error(f"Trader: Get Positions failed: not connected")
@@ -173,7 +175,7 @@ class SchwabBroker(BaseBroker):
             self.logger.info(f"Retrieved positions: {data_dict}")
             return self.ret_ok_code, data_dict
 
-    def get_positions_by_ticker(self, ticker: str):
+    def get_positions_by_ticker(self, ticker: str) -> Tuple[int, Optional[float]]:
         ret_status_code, positions = self.get_positions()
         if ret_status_code == self.ret_ok_code:
             position = positions.get(ticker, {})
@@ -181,7 +183,7 @@ class SchwabBroker(BaseBroker):
         else:
             return self.ret_error_code, None
 
-    def market_sell(self, stock: str, quantity: int, price: float):
+    def market_sell(self, stock: str, quantity: int, price: float) -> Tuple[int, None]:
         self.connect()
         if not self.connected:
             self.logger.error(f"Trader: Market Sell failed: not connected")
@@ -198,7 +200,7 @@ class SchwabBroker(BaseBroker):
 
         return self.ret_ok_code, None
 
-    def market_buy(self, stock: str, quantity: int, price: float):
+    def market_buy(self, stock: str, quantity: int, price: float) -> Tuple[int, None]:
         self.connect()
         if not self.connected:
             self.logger.error(f"Trader: Market Buy failed: not connected")
@@ -215,7 +217,7 @@ class SchwabBroker(BaseBroker):
 
         return self.ret_ok_code, None
 
-    def limit_sell(self, stock: str, quantity: int, price: str):
+    def limit_sell(self, stock: str, quantity: int, price: str) -> Tuple[int, None]:
         self.connect()
         if not self.connected:
             self.logger.error(f"Trader: Limit Sell failed: not connected")
@@ -240,7 +242,7 @@ class SchwabBroker(BaseBroker):
 
         return self.ret_ok_code, None
 
-    def limit_buy(self, stock: str, quantity: int, price: str):
+    def limit_buy(self, stock: str, quantity: int, price: str) -> Tuple[int, None]:
         self.connect()
         if not self.connected:
             self.logger.error(f"Trader: Limit Buy failed: not connected")
@@ -264,14 +266,3 @@ class SchwabBroker(BaseBroker):
             return self.ret_error_code, None
 
         return self.ret_ok_code, None
-
-    def refresh_token(self):
-        try:
-            client_from_login_flow(api_key=SCHWAB_APP_KEY, app_secret=SCHWAB_SECRET,
-                                   callback_url=SCHWAB_CALLBACK_URL, token_path=SCHWAB_TOKEN_PATH,
-                                   requested_browser=None, callback_timeout=300)
-        except Exception as e:
-            self.logger.error('Failed to fetch a token using a web browser, falling back to the manual flow, error:', e)
-            print('Failed to fetch a token using a web browser, falling back to the manual flow, error:', e)
-            client_from_manual_flow(api_key=SCHWAB_APP_KEY, app_secret=SCHWAB_SECRET,
-                                    callback_url=SCHWAB_CALLBACK_URL, token_path=SCHWAB_TOKEN_PATH)

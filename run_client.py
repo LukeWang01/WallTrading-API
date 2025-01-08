@@ -20,11 +20,13 @@ client_trader = BrokerFactory.get_broker(TRADING_BROKER)
 print_status("Client Runner", "Client Trader Initialized", "INFO")
 
 
-def trader_broker_setup_check():
+def trader_broker_setup_check() -> bool:
     try:
-        ret_code, data = client_trader.get_cash_balance_number_only()
+        # change the get cash to get account info, detailed information to check if the broker is set up correctly
+        # updated 01-07-2025
+        ret_code, data = client_trader.get_account_info()
         if ret_code == client_trader.ret_ok_code:
-            print_status("Client Runner", "Broker setup successful", "SUCCESS")
+            print_status("Client Runner", f"Broker setup successful - {data}", "SUCCESS")
             return True
         else:
             print_status("Client Runner", "Broker setup failed, please check password or connection", "ERROR")
@@ -34,17 +36,7 @@ def trader_broker_setup_check():
         return False
 
 
-def signal_handler(signum, frame):
-    """Handle shutdown signals"""
-    logger.info("Shutdown signal received")
-    print_status("Client Runner", "Shutdown signal received", "WARNING")
-    if client:
-        client.running = False
-    if not shutdown_event.is_set():
-        shutdown_event.set()
-
-
-def check_if_test_data(json_data):
+def check_if_test_data(json_data) -> bool:
     for k, v in json_data.items():
         if "test" in str(k):
             return True
@@ -79,7 +71,7 @@ def handle_data(json_data):
     else:
         # trading data received, make trade
         qty_num, qty_pct = decision_qty(json_data)
-        print_status("Data Handler", f"Decision qty: {qty_num}, Decision original qty percent: {qty_pct}", "INFO")
+        print_status("Data Handler", f"Decision qty: {qty_num}, Decision original qty percent: {int(qty_pct * 100)} %", "INFO")
         called_by = "run_client.py - handle_data"
         if qty_num > 0:
             if TRADING_CONFIRMATION:
@@ -90,9 +82,22 @@ def handle_data(json_data):
                 except Exception as error:
                     print_status("Data Handler", f"Error making trade: {error}", "ERROR")
             else:
-                print_status("Data Handler", "No trade made, trading not confirmed", "INFO")
+                print_status("Data Handler", "No trade made, trading not confirmed per trading settings", "INFO")
         else:
-            print_status("Data Handler", "No trade made, qty decision is 0", "WARNING")
+            print_status("Data Handler", "No trade made, qty decision is 0, please check trading settings", "WARNING")
+
+
+"""Section 2: Client Runner Code"""
+
+
+def signal_handler(signum, frame):
+    """Handle shutdown signals"""
+    logger.info("Shutdown signal received")
+    print_status("Client Runner", "Shutdown signal received", "WARNING")
+    if client:
+        client.running = False
+    if not shutdown_event.is_set():
+        shutdown_event.set()
 
 
 async def main():
