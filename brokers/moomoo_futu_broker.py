@@ -30,6 +30,10 @@ from env._secrete import MooMoo_Futu_PWD, MooMoo_Futu_SecurityFirm
 from trading_settings import TRADING_BROKER
 from utils.wall_api_client import print_status
 
+import nest_asyncio
+
+nest_asyncio.apply()
+
 """ ⬇️ Broker Setup ⬇️ """
 '''
 Step 1: Set up the environment information
@@ -197,7 +201,10 @@ class MooMooFutuBroker(BaseBroker):
     def get_account_info(self):
         self.init_context()
         if self._unlock_trade():
-            ret, data = self.trade_context.accinfo_query()
+            # https://openapi.moomoo.com/moomoo-api-doc/en/trade/get-funds.html
+            # Default, currency=Currency.HKD, change to USD
+            # updated 01-07-2025
+            ret, data = self.trade_context.accinfo_query(currency=Currency.USD)
             if ret != RET_OK:
                 print_status("MooMoo/Futu Trader", "Get Account Info failed", "ERROR")
                 self.logger.warning('Trader: Get Account Info failed: ', data)
@@ -205,7 +212,10 @@ class MooMooFutuBroker(BaseBroker):
                 return self.ret_error_code, data
 
             acct_info = {
-                'cash': round(data["cash"][0], 2),
+                # https://openapi.moomoo.com/moomoo-api-doc/en/trade/get-funds.html
+                # Obsolete. Please use 'us_cash' or other fields to get the cash of each currency.
+                # updated 01-07-2025
+                'cash': round(data["us_cash"][0], 2),
                 'total_assets': round(data["total_assets"][0], 2),
                 'market_value': round(data["market_val"][0], 2),
             }
