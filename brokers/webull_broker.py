@@ -11,10 +11,14 @@ import requests
 from webull import webull
 
 from brokers.base_broker import BaseBroker
+from trading_settings import TRADING_ALLOW_PRE_POST_MARKET_ORDER
 from utils.time_tool import get_current_time
 
 """ ⬇️ Broker Setup ⬇️ """
 # refill the setup like MooMooFutuBroker Class
+
+FILL_OUTSIDE_MARKET_HOURS = TRADING_ALLOW_PRE_POST_MARKET_ORDER  # enable if order fills on extended hours
+
 """ ⏫ Broker Setup ⏫ """
 
 
