@@ -27,7 +27,7 @@ ONE_PERCENT_TRADING_QTY_FOR_IBIT = 1  # default to 1, set the trading quantity f
 TRADING_LIST = ['TQQQ', 'SOXL', 'IBIT']  # set the trading list, delete the stock if you don't want to trade
 TRADING_LEVEL = ['L0', 'L1', 'L2', 'L3', 'L4']  # set the trading level, delete the level if you don't want to trade
 
-""" Step 4 (Optional): Account settings, don't change the default setting unless you know what you are doing """
+""" (Optional): Account settings, don't change the default setting unless you know what you are doing """
 TRADING_CONFIRMATION = True  # default to True, set to False if you want to stop trading
 TRADING_CASH_THRESHOLD = 1  # set the minimum cash balance requirement after each trade
 TRADING_CASH_MARGIN_CONTROL = True  # default to True, set to False if you want to use margin
