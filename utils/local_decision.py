@@ -54,7 +54,7 @@ def decision_qty(json_data) -> tuple[int, float]:
                      f"Warning, ticker not in the trading list, qty is 0, please check the trading settings",
                      "WARNING")
         return 0, position_pct
-    if stock not in TRADING_LEVEL:
+    if level not in TRADING_LEVEL:
         print_status("Decision QTY Handler",
                      f"Warning, level not in the trading level, qty is 0, please check the trading settings",
                      "WARNING")
