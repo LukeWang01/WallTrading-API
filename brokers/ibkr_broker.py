@@ -155,7 +155,7 @@ class IBKRBroker(BaseBroker):
 
         try:
             contract = Stock(stock, 'SMART', 'USD')
-            order = MarketOrder('sell', quantity, account=IBKR_ACCOUNT_NUMBER, outsideRth=FILL_OUTSIDE_MARKET_HOURS)
+            order = MarketOrder('sell', quantity, account=IBKR_ACCOUNT_NUMBER)
             trade = self.ib.placeOrder(contract, order)
             return self.ret_ok_code, None
         except Exception as e:
@@ -173,7 +173,7 @@ class IBKRBroker(BaseBroker):
 
         try:
             contract = Stock(stock, 'SMART', 'USD')
-            order = MarketOrder('buy', quantity, account=IBKR_ACCOUNT_NUMBER, outsideRth=FILL_OUTSIDE_MARKET_HOURS)
+            order = MarketOrder('buy', quantity, account=IBKR_ACCOUNT_NUMBER)
             trade = self.ib.placeOrder(contract, order)
             return self.ret_ok_code, None
         except Exception as e:
