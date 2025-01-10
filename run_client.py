@@ -4,7 +4,8 @@ import sys
 
 from brokers.broker_factory import BrokerFactory
 from env._secrete import SERVER_IP, API_CLIENT_ID, API_PASSWORD
-from trading_settings import decision_qty, TRADING_BROKER, TRADING_CONFIRMATION
+from trading_settings import TRADING_BROKER, TRADING_CONFIRMATION
+from utils.local_decision import decision_qty
 from utils.wall_api_client import DataClient, print_status
 from utils.logger_config import setup_logger
 

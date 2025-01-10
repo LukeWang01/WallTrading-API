@@ -27,7 +27,7 @@ from moomoo import *
 
 from brokers.base_broker import BaseBroker
 from env._secrete import MooMoo_Futu_PWD, MooMoo_Futu_SecurityFirm
-from trading_settings import TRADING_BROKER
+from trading_settings import TRADING_BROKER, TRADING_ALLOW_PRE_POST_MARKET_ORDER
 from utils.wall_api_client import print_status
 
 import nest_asyncio
@@ -53,7 +53,7 @@ TRADING_PWD = MooMoo_Futu_PWD  # set up the trading password in the env/_secrete
 '''
 Step 3: Set up the trading information
 '''
-FILL_OUTSIDE_MARKET_HOURS = True  # enable if order fills on extended hours
+FILL_OUTSIDE_MARKET_HOURS = TRADING_ALLOW_PRE_POST_MARKET_ORDER  # enable if order fills on extended hours
 TRADING_MARKET = TrdMarket.US  # set up the trading market, US market, HK for HongKong, etc.
 # NONE = "N/A"
 # HK = "HK"

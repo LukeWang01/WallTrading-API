@@ -14,6 +14,8 @@ from env._secrete import IBKR_account_number
 
 import nest_asyncio
 
+from trading_settings import TRADING_ALLOW_PRE_POST_MARKET_ORDER
+
 nest_asyncio.apply()
 
 """ ⬇️ Broker Setup ⬇️ """
@@ -38,7 +40,7 @@ IBKR_ACCOUNT_NUMBER = IBKR_account_number  # set up the account number in the en
 Step 3: Set up the trading information
 '''
 # TODO: Set up the trading information for pre post market trading
-FILL_OUTSIDE_MARKET_HOURS = True  # enable if order fills on extended hours
+FILL_OUTSIDE_MARKET_HOURS = TRADING_ALLOW_PRE_POST_MARKET_ORDER  # enable if order fills on extended hours
 
 """ ⏫ Broker Setup ⏫ """
 
@@ -189,7 +191,7 @@ class IBKRBroker(BaseBroker):
 
         try:
             contract = Stock(stock, 'SMART', 'USD')
-            order = LimitOrder('sell', quantity, price, account=IBKR_ACCOUNT_NUMBER)
+            order = LimitOrder('sell', quantity, price, account=IBKR_ACCOUNT_NUMBER, outsideRth=FILL_OUTSIDE_MARKET_HOURS)
             trade = self.ib.placeOrder(contract, order)
             return self.ret_ok_code, None
         except Exception as e:
@@ -207,8 +209,9 @@ class IBKRBroker(BaseBroker):
 
         try:
             contract = Stock(stock, 'SMART', 'USD')
-            order = LimitOrder('buy', quantity, price, account=IBKR_ACCOUNT_NUMBER)
+            order = LimitOrder('buy', quantity, price, account=IBKR_ACCOUNT_NUMBER, outsideRth=FILL_OUTSIDE_MARKET_HOURS)
             trade = self.ib.placeOrder(contract, order)
+            res = f"Trade submitted: {trade}"
             return self.ret_ok_code, None
         except Exception as e:
             self.logger.error(f"Error placing limit buy order: {e}")

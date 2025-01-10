@@ -19,6 +19,8 @@ from env._secrete import Schwab_account_number, Schwab_app_key, Schwab_secret
 import httpx
 import time
 
+from trading_settings import TRADING_ALLOW_PRE_POST_MARKET_ORDER
+
 """ ⬇️ Broker Setup ⬇️ """
 # Schwab API Docs: https://schwab-py.readthedocs.io/en/latest/getting-started.html
 '''
@@ -38,7 +40,7 @@ SCHWAB_SECRET = Schwab_secret  # set up the Secret in the env/_secrete.py file
 '''
 Step 3: Set up the trading information
 '''
-FILL_OUTSIDE_MARKET_HOURS = True  # enable if order fills on extended hours
+FILL_OUTSIDE_MARKET_HOURS = TRADING_ALLOW_PRE_POST_MARKET_ORDER  # enable if order fills on extended hours
 
 """ ⏫ Broker Setup ⏫ """
 
