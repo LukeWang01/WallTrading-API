@@ -5,6 +5,7 @@ from brokers.ibkr_broker import IBKRBroker
 from brokers.moomoo_futu_broker import MooMooFutuBroker
 from brokers.schwab_broker import SchwabBroker
 from brokers.webull_broker import WebullBroker
+from brokers.tiger_broker import TigerBroker
 
 
 class BrokerFactory:
@@ -24,7 +25,8 @@ class BrokerFactory:
             'WEBULL': WebullBroker,
             'MooMoo': MooMooFutuBroker,
             'Futu': MooMooFutuBroker,
-            'SCHWAB': SchwabBroker,  # Add Schwab to the broker map
+            'SCHWAB': SchwabBroker,
+            'TIGER': TigerBroker
         }
 
         if broker_name not in broker_map:

@@ -10,6 +10,7 @@ TRADING_BROKER = 'MooMoo'  # set up the broker name based on the broker class na
 'MooMoo': MooMooFutuBroker,
 'Futu': MooMooFutuBroker,
 'SCHWAB': SchwabBroker,
+'TIGER': TigerBroker
 """
 
 
