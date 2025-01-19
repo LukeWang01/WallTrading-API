@@ -1,8 +1,9 @@
 pandas>=1.5.0
 numpy>=1.21.0
-webull>=0.6.0
-ib_insync>=0.9.86
 schwab-py>=1.4.0
+ib_insync>=0.9.86
+tigeropen>=3.3.1
+webull>=0.6.0
 pytest>=7.0.0
 pytest-cov>=3.0.0
 mypy>=0.950

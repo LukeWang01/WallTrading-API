@@ -8,6 +8,7 @@ TRADING_BROKER = 'MooMoo'  # set up the broker name based on the broker class na
 'MooMoo': MooMooFutuBroker,
 'Futu': MooMooFutuBroker,
 'SCHWAB': SchwabBroker,
+'TIGER': TigerBroker
 """
 
 """ Step 2: ‼️ Important. Please choose qty decision mode, revise qty setting for each stock ‼️ """
