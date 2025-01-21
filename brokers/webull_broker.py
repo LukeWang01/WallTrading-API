@@ -70,7 +70,6 @@ class WebullBroker(BaseBroker):
         self.pending_orders_history = ''
 
         self.has_trader_info = False
-        # self.log_in()
 
     def market_sell(self, stock: str, quantity: int, price: float):
         if not self.is_trader_logged_in():
@@ -86,9 +85,10 @@ class WebullBroker(BaseBroker):
             self.logger.info('Trader: Market Sell success!')
             return self.ret_ok_code, response['data']
         else:
-            print_status("Webull Trader", "Market Sell failed", "ERROR")
-            self.logger.warning(f'Trader: Market Buy failed: {response["msg"]}')
-            return self.ret_error_code, response['msg']
+            data = response['msg']
+            print_status("Webull Trader", f"Market Sell failed {data}", "ERROR")
+            self.logger.warning(f'Trader: Market Buy failed: {data}')
+            return self.ret_error_code, data
 
     def market_buy(self, stock: str, quantity: int, price: float):
         if not self.is_trader_logged_in():
@@ -104,9 +104,10 @@ class WebullBroker(BaseBroker):
             self.logger.info('Trader: Market Buy success!')
             return self.ret_ok_code, response['data']
         else:
-            print_status("Webull Trader", "Market Buy failed", "ERROR")
-            self.logger.warning(f'Trader: Market Buy failed: {response["msg"]}')
-            return self.ret_error_code, response['msg']
+            data = response['msg']
+            print_status("Webull Trader", f"Market Buy failed {data}", "ERROR")
+            self.logger.warning(f'Trader: Market Buy failed: {data}')
+            return self.ret_error_code, data
 
     def limit_sell(self, stock: str, quantity: int, price: float):
         if not self.is_trader_logged_in():
@@ -123,9 +124,10 @@ class WebullBroker(BaseBroker):
             self.logger.info('Trader: Limit Sell success!')
             return self.ret_ok_code, response['data']
         else:
-            print_status("Webull Trader", "Limit Sell failed", "ERROR")
-            self.logger.warning(f'Trader: Market Buy failed: {response["msg"]}')
-            return self.ret_error_code, response['msg']
+            data = response['msg']
+            print_status("Webull Trader", f"Limit Sell failed{data}", "ERROR")
+            self.logger.warning(f'Trader: Market Buy failed: {data}')
+            return self.ret_error_code, data
 
     def limit_buy(self, stock: str, quantity: int, price: float):
         if not self.is_trader_logged_in():
@@ -141,9 +143,10 @@ class WebullBroker(BaseBroker):
             self.logger.info('Trader: Limit Buy success!')
             return self.ret_ok_code, response['data']
         else:
-            print_status("Webull Trader", "Limit Buy failed", "ERROR")
-            self.logger.warning(f'Trader: Market Buy failed: {response["msg"]}')
-            return self.ret_error_code, response['msg']
+            data = response['msg']
+            print_status("Webull Trader", f"Limit Buy failed {data}", "ERROR")
+            self.logger.warning(f'Trader: Market Buy failed: {data}')
+            return self.ret_error_code, data
 
     def get_account_info(self):
         account_info = self._webull.get_account()
