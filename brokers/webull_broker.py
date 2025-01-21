@@ -13,14 +13,13 @@ from webull import webull
 from brokers.base_broker import BaseBroker
 from env._secrete import Webull_username, Webull_password, Webull_device_name, Webull_PID, Webull_did_from_web, \
     Webull_access_token, Webull_uuid, Webull_account_id, Webull_account_type
-from trading_settings import TRADING_ALLOW_PRE_POST_MARKET_ORDER
 from utils.time_tool import get_current_time
 from utils.wall_api_client import print_status
 
 """ ⬇️ Broker Setup ⬇️ """
 # refill the setup like MooMooFutuBroker Class
 
-FILL_OUTSIDE_MARKET_HOURS = TRADING_ALLOW_PRE_POST_MARKET_ORDER  # enable if order fills on extended hours
+# FILL_OUTSIDE_MARKET_HOURS = TRADING_ALLOW_PRE_POST_MARKET_ORDER  # enable if order fills on extended hours
 
 """ ⏫ Broker Setup ⏫ """
 
@@ -29,6 +28,8 @@ class WebullBroker(BaseBroker):
 
     def __init__(self):
         super().__init__()
+        # init webull api
+        self._webull = webull()
         # Log in authentication:
         self.username = Webull_username
         self.password = Webull_password
@@ -37,9 +38,6 @@ class WebullBroker(BaseBroker):
         # Trading token authentication:
         self.PID = Webull_PID
         self.PID_timeout = 15  # should be int
-
-        # init webull api
-        self._webull = webull()
 
         # Authentication additional:
         self.did = Webull_did_from_web
@@ -220,8 +218,6 @@ class WebullBroker(BaseBroker):
             print_status("Webull Trader", "Get Cash Balance failed", "ERROR")
             self.logger.warning(f'Trader: Get Cash Balance failed: {account_info}')
             return self.ret_error_code, account_info
-
-    """ ⬇️ Extended Trading Functions, not used for now ⬇️ """
 
     # def set_PID_expiry(self, expiry):
     #     self._webull.timeout = expiry
