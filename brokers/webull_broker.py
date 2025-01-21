@@ -11,13 +11,15 @@ import requests
 from webull import webull
 
 from brokers.base_broker import BaseBroker
-from trading_settings import TRADING_ALLOW_PRE_POST_MARKET_ORDER
+from env._secrete import Webull_username, Webull_password, Webull_device_name, Webull_PID, Webull_did_from_web, \
+    Webull_access_token, Webull_uuid, Webull_account_id, Webull_account_type
 from utils.time_tool import get_current_time
+from utils.wall_api_client import print_status
 
 """ ⬇️ Broker Setup ⬇️ """
 # refill the setup like MooMooFutuBroker Class
 
-FILL_OUTSIDE_MARKET_HOURS = TRADING_ALLOW_PRE_POST_MARKET_ORDER  # enable if order fills on extended hours
+# FILL_OUTSIDE_MARKET_HOURS = TRADING_ALLOW_PRE_POST_MARKET_ORDER  # enable if order fills on extended hours
 
 """ ⏫ Broker Setup ⏫ """
 
@@ -26,24 +28,23 @@ class WebullBroker(BaseBroker):
 
     def __init__(self):
         super().__init__()
-        # Log in authentication:
-        self.username = ''
-        self.password = ''
-        self.device_name = ''
-
-        # Trading token authentication:
-        self.PID = ''
-        self.PID_timeout = 15  # should be int
-
         # init webull api
         self._webull = webull()
+        # Log in authentication:
+        self.username = Webull_username
+        self.password = Webull_password
+        self.device_name = Webull_device_name
+
+        # Trading token authentication:
+        self.PID = Webull_PID
+        self.PID_timeout = 15  # should be int
 
         # Authentication additional:
-        self.did = ''
-        self.access_token = ''
-        self.uuid = ''
-        self.account_id = ''
-        self.account_type = ''
+        self.did = Webull_did_from_web
+        self.access_token = Webull_access_token
+        self.uuid = Webull_uuid
+        self.account_id = Webull_account_id
+        self.account_type = Webull_account_type
 
         # Trader current trading status:
         self.order_placed = 0
@@ -70,34 +71,183 @@ class WebullBroker(BaseBroker):
 
         self.has_trader_info = False
 
-        print(f"Webull created")
+    def market_sell(self, stock: str, quantity: int, price: float):
+        if not self.is_trader_logged_in():
+            self.log_in()
 
-    def set_PID_expiry(self, expiry):
-        self._webull.timeout = expiry
+        self.enable_trading()
+        # Sell, market order, sell 1 price, daily:
+        response = self._webull.place_order(stock=stock, action='SELL', enforce='DAY', orderType='MKT', quant=quantity)
+        # price = self.get_bid_price(stock)
+        # order_details = self.print_order_details(response, stock, price, quantity, 'SELL', 'MKT')
+        if response['success']:
+            print_status("Webull Trader", "Market Sell success", "SUCCESS")
+            self.logger.info('Trader: Market Sell success!')
+            return self.ret_ok_code, response['data']
+        else:
+            data = response['msg']
+            print_status("Webull Trader", f"Market Sell failed {data}", "ERROR")
+            self.logger.warning(f'Trader: Market Buy failed: {data}')
+            return self.ret_error_code, data
 
-    def set_trader_info(self, username, password, pid):
-        self.username = username
-        self.password = password
-        self.PID = pid
-        print(f"Webull: Trader info set")
+    def market_buy(self, stock: str, quantity: int, price: float):
+        if not self.is_trader_logged_in():
+            self.log_in()
 
-    def set_user_name(self, email):
-        self.username = email
+        self.enable_trading()
+        # Buy, market order, buy 1 price, daily:
+        response = self._webull.place_order(stock=stock, action='BUY', enforce='DAY', orderType='MKT', quant=quantity)
+        # price = self.get_ask_price(stock)
+        # order_details = self.print_order_details(response, stock, price, quantity, 'BUY', 'MKT')
+        if response['success']:
+            print_status("Webull Trader", "Market Buy success", "SUCCESS")
+            self.logger.info('Trader: Market Buy success!')
+            return self.ret_ok_code, response['data']
+        else:
+            data = response['msg']
+            print_status("Webull Trader", f"Market Buy failed {data}", "ERROR")
+            self.logger.warning(f'Trader: Market Buy failed: {data}')
+            return self.ret_error_code, data
 
-    def set_device_name(self, device_name):
-        self.device_name = device_name
+    def limit_sell(self, stock: str, quantity: int, price: float):
+        if not self.is_trader_logged_in():
+            self.log_in()
 
-    def set_auth_did(self, did):
-        self._webull._set_did(did)
-        self.did = did
+        self.enable_trading()
+        # Sell, limit price order, ask price, sell 1 price, daily:
+        response = self._webull.place_order(stock=stock, action='SELL', price=price, enforce='DAY', orderType='LMT',
+                                            quant=quantity)
+        # outsideRegularTradingHour default is True
+        # order_details = self.print_order_details(response, stock, price, quantity, 'SELL', 'DAY')
+        if response['success']:
+            print_status("Webull Trader", "Limit Sell success", "SUCCESS")
+            self.logger.info('Trader: Limit Sell success!')
+            return self.ret_ok_code, response['data']
+        else:
+            data = response['msg']
+            print_status("Webull Trader", f"Limit Sell failed{data}", "ERROR")
+            self.logger.warning(f'Trader: Market Buy failed: {data}')
+            return self.ret_error_code, data
 
-    def set_auth_access_token(self, access_token):
-        self.access_token = access_token
-        self._webull._access_token = access_token
+    def limit_buy(self, stock: str, quantity: int, price: float):
+        if not self.is_trader_logged_in():
+            self.log_in()
 
-    def set_auth_uuid(self, uuid):
-        self._webull.uuid = uuid
-        self.uuid = uuid
+        self.enable_trading()
+        # Buy, limit price order, bid price, buy 1 price, daily:
+        response = self._webull.place_order(stock=stock, action='BUY', price=price, enforce='DAY', orderType='LMT',
+                                            quant=quantity)
+        # order_details = self.print_order_details(response, stock, price, quantity, 'BUY', 'DAY')
+        if response['success']:
+            print_status("Webull Trader", "Limit Buy success", "SUCCESS")
+            self.logger.info('Trader: Limit Buy success!')
+            return self.ret_ok_code, response['data']
+        else:
+            data = response['msg']
+            print_status("Webull Trader", f"Limit Buy failed {data}", "ERROR")
+            self.logger.warning(f'Trader: Market Buy failed: {data}')
+            return self.ret_error_code, data
+
+    def get_account_info(self):
+        account_info = self._webull.get_account()
+        if account_info['secAccountId']:
+            self.account_id = account_info['secAccountId']
+            self.order_placed = '-'
+            self.order_filled = '-'
+            self.order_pending = account_info['openOrderSize']
+            self.openPL_pct = str(round(float(account_info['unrealizedProfitLossRate']) * 100, 2)) + ' %'
+            self.openPL = account_info['unrealizedProfitLoss']
+            self.dayPL_pct = '-'
+            self.dayPL = '-'
+            self.market_value = account_info['accountMembers'][0]['value']
+            self.cash_balance = account_info['accountMembers'][1]['value']
+            self.dayBuyingPower = account_info['accountMembers'][2]['value']
+            self.overnightBuyingPower = account_info['accountMembers'][3]['value']
+            self.cryptoBuyingPower = account_info['accountMembers'][4]['value']
+            self.optionBuyingPower = account_info['accountMembers'][5]['value']
+            self.net_account_value = account_info['netLiquidation']
+            return self.ret_ok_code, account_info
+        else:
+            print_status("Webull Trader", "Get Account Info failed", "ERROR")
+            self.logger.warning(f'Trader: Get Account Info failed: {account_info}')
+            return self.ret_error_code, account_info
+
+    def get_positions(self):
+        account_info = self._webull.get_account()
+        if account_info['positions']:
+            positions = account_info['positions']
+            return self.ret_ok_code, positions
+        else:
+            print_status("Webull Trader", "Get Positions failed", "ERROR")
+            self.logger.warning(f'Trader: Get Positions failed: {account_info}')
+            return self.ret_error_code, account_info
+
+    def get_positions_by_ticker(self, ticker: str):
+        account_info = self._webull.get_account()
+        if account_info['positions']:
+            positions = account_info['positions']
+            # ticker = position['ticker']['symbol']
+            # qty = position['position']
+            # marketValue = position['marketValue']
+            # lastPrice = position['lastPrice']
+            # costPrice = position['costPrice']
+            # unrealizedProfitLoss = position['unrealizedProfitLoss']
+            # unrealizedProfitLossRate = round(float(position['unrealizedProfitLossRate']) * 100, 2)
+            for position in positions:
+                if position['ticker']['symbol'].lower() == ticker.lower():
+                    qty = position['position']
+                    return self.ret_ok_code, qty
+        else:
+            print_status("Webull Trader", "Get Positions failed", "ERROR")
+            self.logger.warning(f'Trader: Get Positions failed: {account_info}')
+            return self.ret_error_code, account_info
+
+    def get_cash_balance(self):
+        account_info = self._webull.get_account()
+        if account_info['accountMembers']:
+            self.cash_balance = float(account_info['accountMembers'][1]['value'])
+            return self.ret_ok_code, account_info
+        else:
+            print_status("Webull Trader", "Get Cash Balance failed", "ERROR")
+            self.logger.warning(f'Trader: Get Cash Balance failed: {account_info}')
+            return self.ret_error_code, account_info
+
+    def get_cash_balance_number_only(self):
+        account_info = self._webull.get_account()
+        if account_info['accountMembers']:
+            self.cash_balance = float(account_info['accountMembers'][1]['value'])
+            return self.ret_ok_code, self.cash_balance
+        else:
+            print_status("Webull Trader", "Get Cash Balance failed", "ERROR")
+            self.logger.warning(f'Trader: Get Cash Balance failed: {account_info}')
+            return self.ret_error_code, account_info
+
+    # def set_PID_expiry(self, expiry):
+    #     self._webull.timeout = expiry
+    #
+    # def set_trader_info(self, username, password, pid):
+    #     self.username = username
+    #     self.password = password
+    #     self.PID = pid
+    #     print(f"Webull: Trader info set")
+    #
+    # def set_user_name(self, email):
+    #     self.username = email
+    #
+    # def set_device_name(self, device_name):
+    #     self.device_name = device_name
+    #
+    # def set_auth_did(self, did):
+    #     self._webull._set_did(did)
+    #     self.did = did
+    #
+    # def set_auth_access_token(self, access_token):
+    #     self.access_token = access_token
+    #     self._webull._access_token = access_token
+    #
+    # def set_auth_uuid(self, uuid):
+    #     self._webull.uuid = uuid
+    #     self.uuid = uuid
 
     def get_account_id(self):
         return self.account_id
@@ -123,17 +273,20 @@ class WebullBroker(BaseBroker):
                 # print('-----------------------------------')
                 # print('>>>>>>   Log in successful   <<<<<<')
                 # print(f'>>>   Your login ID: {self.account_id}   <<<')
-                print('Log in successful')
+                # print('Log in successful')
+                print_status("Webull Trader", "Log in successful", "SUCCESS")
                 return True
             else:
                 # print('-----------------------------------')
                 # print('>>> Log in failed, authentication failed, check info below: ')
                 # print(login_result)
-                print(f'Log in failed, authentication failed, check info below: {login_result}')
+                # print(f'Log in failed, authentication failed, check info below: {login_result}')
+                print_status("Webull Trader", "Log in failed, authentication failed", "ERROR")
                 return False
         except ValueError:
             # print('>>>>>>    Log in failed, please check username or password')
-            print('Log in failed, please check username or password')
+            # print('Log in failed, please check username or password')
+            print_status("Webull Trader", "Log in failed, please check username or password", "ERROR")
             return False
 
     def log_out(self):
@@ -172,7 +325,7 @@ class WebullBroker(BaseBroker):
             # print('>>> First bid price/ buy one price:  ', bid_price_1)
             # print('>>> First ask price/ sell one price:  ', ask_price_1)
             return res
-        except ValueError or KeyError:
+        except (ValueError or KeyError):
             # print('>>> Please pass a valid stock ticker <<<')
             print('Please pass a valid stock ticker')
             return False
@@ -199,56 +352,6 @@ class WebullBroker(BaseBroker):
             print('Please pass a valid stock ticker')
             return False
 
-    def get_account_info(self):
-        account_info = self._webull.get_account()
-        self.account_id = account_info['secAccountId']
-        self.order_placed = '-'
-        self.order_filled = '-'
-        self.order_pending = account_info['openOrderSize']
-        self.openPL_pct = str(round(float(account_info['unrealizedProfitLossRate']) * 100, 2)) + ' %'
-        self.openPL = account_info['unrealizedProfitLoss']
-        self.dayPL_pct = '-'
-        self.dayPL = '-'
-        self.market_value = account_info['accountMembers'][0]['value']
-        self.cash_balance = account_info['accountMembers'][1]['value']
-        self.dayBuyingPower = account_info['accountMembers'][2]['value']
-        self.overnightBuyingPower = account_info['accountMembers'][3]['value']
-        self.cryptoBuyingPower = account_info['accountMembers'][4]['value']
-        self.optionBuyingPower = account_info['accountMembers'][5]['value']
-        self.net_account_value = account_info['netLiquidation']
-
-    def market_sell(self, stock: str, quantity: int, price: float):
-        self.enable_trading()
-        # Sell, market order, sell 1 price, daily:
-        response = self._webull.place_order(stock=stock, action='SELL', enforce='DAY', orderType='MKT', quant=quantity)
-        price = self.get_bid_price(stock)
-        order_details = self.print_order_details(response, stock, price, quantity, 'SELL', 'MKT')
-        return order_details
-
-    def market_buy(self, stock: str, quantity: int, price: float):
-        self.enable_trading()
-        # Buy, market order, buy 1 price, daily:
-        response = self._webull.place_order(stock=stock, action='BUY', enforce='DAY', orderType='MKT', quant=quantity)
-        price = self.get_ask_price(stock)
-        order_details = self.print_order_details(response, stock, price, quantity, 'BUY', 'MKT')
-        return order_details
-
-    def limit_sell(self, stock: str, quantity: int, price: float):
-        self.enable_trading()
-        # Sell, limit price order, ask price, sell 1 price, daily:
-        response = self._webull.place_order(stock=stock, action='SELL', price=price, enforce='DAY', orderType='LMT',
-                                            quant=quantity)
-        order_details = self.print_order_details(response, stock, price, quantity, 'SELL', 'DAY')
-        return order_details
-
-    def limit_buy(self, stock: str, quantity: int, price: float):
-        self.enable_trading()
-        # Buy, limit price order, bid price, buy 1 price, daily:
-        response = self._webull.place_order(stock=stock, action='BUY', price=price, enforce='DAY', orderType='LMT',
-                                            quant=quantity)
-        order_details = self.print_order_details(response, stock, price, quantity, 'BUY', 'DAY')
-        return order_details
-
     def order_limit_buy_gtc(self, stock, price, quantity=1):
         self.enable_trading()
         # Buy, limit price order, ask price, buy 1 price, GTC order:
@@ -264,30 +367,6 @@ class WebullBroker(BaseBroker):
                                             quant=quantity)
         order_details = self.print_order_details(response, stock, price, quantity, 'SELL', 'GTC')
         return order_details
-
-    def get_positions(self):
-        account_info = self._webull.get_account()
-        position = account_info['positions']
-        ticker = position['ticker']['symbol']
-        qty = position['position']
-        marketValue = position['marketValue']
-        lastPrice = position['lastPrice']
-        costPrice = position['costPrice']
-        unrealizedProfitLoss = position['unrealizedProfitLoss']
-        unrealizedProfitLossRate = round(float(position['unrealizedProfitLossRate']) * 100, 2)
-        return position
-
-    def get_positions_by_ticker(self, ticker: str):
-        # TODO: get positions by ticker
-        pass
-
-    def get_cash_balance(self) -> float:
-        account_info = self._webull.get_account()
-        self.cash_balance = float(account_info['accountMembers'][1]['value'])
-        return self.cash_balance
-
-    def get_cash_balance_number_only(self):
-        return self.get_cash_balance()
 
     def print_order_details(self, response, stock, price, qty, direction, order_type):
         if response['success']:

@@ -89,7 +89,7 @@ class MooMooFutuBroker(BaseBroker):
             self.logger.info('MooMoo/Futu Trader: Init Context success!')
             return True
         except Exception as e:
-            self.logger.error('MooMoo/Futu Trader: Init Context failed: ', e)
+            self.logger.error(f'MooMoo/Futu Trader: Init Context failed: {e}')
             self.logger.error('MooMoo/Futu Trader: Please check the OpenD host IP and port number!')
             print_status("MooMoo/Futu Trader", "Init Context failed, please check the OpenD host IP and port number!",
                          "ERROR")
@@ -116,7 +116,7 @@ class MooMooFutuBroker(BaseBroker):
                                                        order_type=OrderType.MARKET, trd_env=TRADING_ENVIRONMENT)
             if ret != RET_OK:
                 print_status("MooMoo/Futu Trader", "Market Sell failed", "ERROR")
-                self.logger.warning('Trader: Market Sell failed: ', data)
+                self.logger.warning(f'Trader: Market Sell failed: {data}')
                 self.close_context()
                 return ret, data
             print_status("MooMoo/Futu Trader", "Market Sell success", "SUCCESS")
@@ -138,11 +138,11 @@ class MooMooFutuBroker(BaseBroker):
                                                        order_type=OrderType.MARKET, trd_env=TRADING_ENVIRONMENT)
             if ret != RET_OK:
                 print_status("MooMoo/Futu Trader", "Market Buy failed", "ERROR")
-                self.logger.warning('Trader: Market Buy failed: ', data)
+                self.logger.warning(f'Trader: Market Buy failed: {data}')
                 self.close_context()
                 return self.ret_error_code, data
             print_status("MooMoo/Futu Trader", "Market Buy success", "SUCCESS")
-            self.logger.info('Trader: Market Buy success!', data)
+            self.logger.info('Trader: Market Buy success!')
             self.close_context()
             return self.ret_ok_code, data
         else:
@@ -161,11 +161,11 @@ class MooMooFutuBroker(BaseBroker):
                                                        fill_outside_rth=FILL_OUTSIDE_MARKET_HOURS)
             if ret != RET_OK:
                 print_status("MooMoo/Futu Trader", "Limit Sell failed", "ERROR")
-                self.logger.warning('Trader: Limit Sell failed: ', data)
+                self.logger.warning(f'Trader: Limit Sell failed: {data}')
                 self.close_context()
                 return self.ret_error_code, data
             print_status("MooMoo/Futu Trader", "Limit Sell success", "SUCCESS")
-            self.logger.info('Trader: Limit Sell success!', data)
+            self.logger.info('Trader: Limit Sell success!')
             self.close_context()
             return self.ret_ok_code, data
         else:
@@ -184,11 +184,11 @@ class MooMooFutuBroker(BaseBroker):
                                                        fill_outside_rth=FILL_OUTSIDE_MARKET_HOURS)
             if ret != RET_OK:
                 print_status("MooMoo/Futu Trader", "Limit Buy failed", "ERROR")
-                self.logger.warning('Trader: Limit Buy failed: ', data)
+                self.logger.warning(f'Trader: Limit Buy failed: {data}')
                 self.close_context()
                 return self.ret_error_code, data
             print_status("MooMoo/Futu Trader", "Limit Buy success", "SUCCESS")
-            self.logger.info('Trader: Limit Buy success!', data)
+            self.logger.info('Trader: Limit Buy success!')
             self.close_context()
             return self.ret_ok_code, data
         else:
@@ -207,7 +207,7 @@ class MooMooFutuBroker(BaseBroker):
             ret, data = self.trade_context.accinfo_query(currency=Currency.USD)
             if ret != RET_OK:
                 print_status("MooMoo/Futu Trader", "Get Account Info failed", "ERROR")
-                self.logger.warning('Trader: Get Account Info failed: ', data)
+                self.logger.warning(f'Trader: Get Account Info failed: {data}')
                 self.close_context()
                 return self.ret_error_code, data
 
@@ -235,7 +235,7 @@ class MooMooFutuBroker(BaseBroker):
             ret, data = self.trade_context.position_list_query()
             if ret != RET_OK:
                 print_status("MooMoo/Futu Trader", "Get Positions failed", "ERROR")
-                self.logger.warning('Trader: Get Positions failed: ', data)
+                self.logger.warning(f'Trader: Get Positions failed: {data}')
                 self.close_context()
                 return self.ret_error_code, data
             # refactor the data

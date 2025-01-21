@@ -42,8 +42,7 @@ def is_market_and_extended_hours():
 
     if trade_open_time <= current_et_time <= trade_close_time:
         return True
-    else:
-        return False
+    return False
 
 
 def get_current_time():

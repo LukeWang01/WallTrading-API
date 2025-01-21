@@ -15,6 +15,7 @@ from env._secrete import IBKR_account_number
 import nest_asyncio
 
 from trading_settings import TRADING_ALLOW_PRE_POST_MARKET_ORDER
+from utils.wall_api_client import print_status
 
 nest_asyncio.apply()
 
@@ -39,7 +40,7 @@ IBKR_ACCOUNT_NUMBER = IBKR_account_number  # set up the account number in the en
 '''
 Step 3: Set up the trading information
 '''
-# TODO: Set up the trading information for pre post market trading
+# use global variable to control the trading settings
 FILL_OUTSIDE_MARKET_HOURS = TRADING_ALLOW_PRE_POST_MARKET_ORDER  # enable if order fills on extended hours
 
 """ ⏫ Broker Setup ⏫ """
@@ -82,7 +83,8 @@ class IBKRBroker(BaseBroker):
         self.connect()
         if not self.ib.isConnected():
             self.logger.error(f"Trader: Get Account Info failed: not connected")
-            print("Trader: Get Account Info failed: not connected")
+            # print("Trader: Get Account Info failed: not connected")
+            print_status("Trader", "Get Account Info failed: not connected", "ERROR")
             return self.ret_error_code, None
 
         try:
@@ -100,16 +102,13 @@ class IBKRBroker(BaseBroker):
         self.connect()
         if not self.ib.isConnected():
             self.logger.error(f"Trader: Get Cash Balance failed: not connected")
-            print("Trader: Get Cash Balance failed: not connected")
+            # print("Trader: Get Cash Balance failed: not connected")
+            print_status("Trader", "Get Cash Balance failed: not connected", "ERROR")
             return self.ret_error_code, None
 
         try:
             account_values = self.ib.accountValues(IBKR_ACCOUNT_NUMBER)
-            is_margin_account = next((True for v in account_values if v.tag == 'DayTradesRemaining'), False)
-            if is_margin_account:
-                available_funds = next((v.value for v in account_values if v.tag == 'CashBalance'), None)
-            else:
-                available_funds = next((v.value for v in account_values if v.tag == 'SettledCash'), None)
+            available_funds = next((v.value for v in account_values if v.tag == 'CashBalance' and v.currency == 'USD'), None)
             self.logger.info(f"Retrieved cash balance: {available_funds}")
             return self.ret_ok_code, float(available_funds)
         except Exception as e:
@@ -125,7 +124,8 @@ class IBKRBroker(BaseBroker):
         self.connect()
         if not self.ib.isConnected():
             self.logger.error(f"Trader: Get Positions failed: not connected")
-            print("Trader: Get Positions failed: not connected")
+            # print("Trader: Get Positions failed: not connected")
+            print_status("Trader", "Get Positions failed: not connected", "ERROR")
             return self.ret_error_code, None
 
         try:
@@ -150,7 +150,8 @@ class IBKRBroker(BaseBroker):
         self.connect()
         if not self.ib.isConnected():
             self.logger.error(f"Trader: Market Sell failed: not connected")
-            print("Trader: Market Sell failed: not connected")
+            # print("Trader: Market Sell failed: not connected")
+            print_status("Trader", "Market Sell failed: not connected", "ERROR")
             return self.ret_error_code, None
 
         try:
@@ -168,7 +169,8 @@ class IBKRBroker(BaseBroker):
         self.connect()
         if not self.ib.isConnected():
             self.logger.error(f"Trader: Market Buy failed: not connected")
-            print("Trader: Market Buy failed: not connected")
+            # print("Trader: Market Buy failed: not connected")
+            print_status("Trader", "Market Buy failed: not connected", "ERROR")
             return self.ret_error_code, None
 
         try:
@@ -186,7 +188,8 @@ class IBKRBroker(BaseBroker):
         self.connect()
         if not self.ib.isConnected():
             self.logger.error(f"Trader: Limit Sell failed: not connected")
-            print("Trader: Limit Sell failed: not connected")
+            # print("Trader: Limit Sell failed: not connected")
+            print_status("Trader", "Limit Sell failed: not connected", "ERROR")
             return self.ret_error_code, None
 
         try:
@@ -204,7 +207,8 @@ class IBKRBroker(BaseBroker):
         self.connect()
         if not self.ib.isConnected():
             self.logger.error(f"Trader: Limit Buy failed: not connected")
-            print("Trader: Limit Buy failed: not connected")
+            # print("Trader: Limit Buy failed: not connected")
+            print_status("Trader", "Limit Buy failed: not connected", "ERROR")
             return self.ret_error_code, None
 
         try:

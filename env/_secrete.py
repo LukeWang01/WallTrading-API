@@ -5,8 +5,9 @@ Important, please don't share with the public
 """ ‼️‼️‼️  please keep your password in SAFE, DO NOT SHARE ‼️‼️‼️"""
 
 """ WallTrading API ID and Password """
-API_CLIENT_ID = 'your_ID'
-API_PASSWORD = 'your_Password'
+# ask 阿墙.B or squawkwallstreet for the API ID and Password
+API_CLIENT_ID = 'your WallTrading API ID'
+API_PASSWORD = 'your WallTrading API Password'
 
 
 """ MooMoo trading setup """
@@ -31,6 +32,11 @@ Schwab_secret = 'xxxxxxxxxxxxxxxx'
 IBKR_account_number = 'U12345678'
 
 
+""" Tiger trading setup """
+Tiger_account_number = '123456'
+# use Tiger omnibus account number, instead of 'Tiger ID' in Tiger Open Platform
+
+
 """ WEBULL: Trading setup """
 Webull_username = 'your_username'
 Webull_password = 'your_password'
@@ -43,6 +49,7 @@ Webull_account_type = 'your_account_type'
 Webull_account_id = 'your_account_id'
 Webull_device_name = 'your_device_name'
 Webull_TBA = 'your_TBA'
+
 
 """ ‼️‼️‼️  please keep your password in SAFE, DO NOT SHARE ‼️‼️‼️"""
 
