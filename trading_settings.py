@@ -1,5 +1,6 @@
 # Description: This file contains the settings for trading.
 
+
 """ Step 1: ‼️ Important. Set up the broker name ‼️ """
 TRADING_BROKER = 'MooMoo'  # set up the broker name based on the broker class name
 """

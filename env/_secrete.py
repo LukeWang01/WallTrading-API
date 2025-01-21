@@ -50,6 +50,7 @@ Webull_account_id = 'your_account_id'
 Webull_device_name = 'your_device_name'
 Webull_TBA = 'your_TBA'
 
+
 """ ‼️‼️‼️  please keep your password in SAFE, DO NOT SHARE ‼️‼️‼️"""
 
 
