@@ -87,7 +87,7 @@ class WebullBroker(BaseBroker):
             return self.ret_ok_code, response['data']
         else:
             print_status("Webull Trader", "Market Sell failed", "ERROR")
-            self.logger.warning(f'Trader: Market Buy failed: {response['msg']}')
+            self.logger.warning(f'Trader: Market Buy failed: {response["msg"]}')
             return self.ret_error_code, response['msg']
 
     def market_buy(self, stock: str, quantity: int, price: float):
@@ -105,7 +105,7 @@ class WebullBroker(BaseBroker):
             return self.ret_ok_code, response['data']
         else:
             print_status("Webull Trader", "Market Buy failed", "ERROR")
-            self.logger.warning(f'Trader: Market Buy failed: {response['msg']}')
+            self.logger.warning(f'Trader: Market Buy failed: {response["msg"]}')
             return self.ret_error_code, response['msg']
 
     def limit_sell(self, stock: str, quantity: int, price: float):
@@ -124,7 +124,7 @@ class WebullBroker(BaseBroker):
             return self.ret_ok_code, response['data']
         else:
             print_status("Webull Trader", "Limit Sell failed", "ERROR")
-            self.logger.warning(f'Trader: Limit Sell failed: {response['msg']}')
+            self.logger.warning(f'Trader: Market Buy failed: {response["msg"]}')
             return self.ret_error_code, response['msg']
 
     def limit_buy(self, stock: str, quantity: int, price: float):
@@ -142,7 +142,7 @@ class WebullBroker(BaseBroker):
             return self.ret_ok_code, response['data']
         else:
             print_status("Webull Trader", "Limit Buy failed", "ERROR")
-            self.logger.warning(f'Trader: Limit Buy failed: {response['msg']}')
+            self.logger.warning(f'Trader: Market Buy failed: {response["msg"]}')
             return self.ret_error_code, response['msg']
 
     def get_account_info(self):
