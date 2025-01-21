@@ -132,9 +132,9 @@ class BaseBroker(ABC):
                         if ret_status_code == self.ret_ok_code:
                             data = f"{get_current_time()}: Market Buy: {stock}, {quantity}, {price}, order placed successfully, please check account. by: {called_by}"
                             print(data)
-                            print(order_data)
+                            # print(order_data)
                             self.logger.info(data)
-                            self.logger.info(order_data)
+                            # self.logger.info(order_data)  # for privacy, not logging the order data, updated 01-13-2025
                         else:
                             data = f"⚠️⚠️⚠️{get_current_time()}: Market Buy: {stock}, {quantity}, {price} Failed, please check broker side or app, by: {called_by}⚠️⚠️⚠️"
                             print(data)
@@ -147,9 +147,9 @@ class BaseBroker(ABC):
                         if ret_status_code == self.ret_ok_code:
                             data = f"{get_current_time()}: Limit Buy: {stock}, {quantity}, {price}, order placed successfully, please check account, by: {called_by}"
                             print(data)
-                            print(order_data)
+                            # print(order_data)
                             self.logger.info(data)
-                            self.logger.info(order_data)
+                            # self.logger.info(order_data)  # for privacy, not logging the order data, updated 01-13-2025
                         else:
                             data = f"⚠️⚠️⚠️{get_current_time()}: Limit Buy: {stock}, {quantity}, {price} Failed, please check broker side or app, by: {called_by}⚠️⚠️⚠️"
                             print(data)
@@ -186,9 +186,9 @@ class BaseBroker(ABC):
                         if ret_status_code == self.ret_ok_code:
                             data = f"{get_current_time()}: Market Sell: {stock}, {quantity}, {price}, order placed successfully, please check account., by: {called_by}"
                             print(data)
-                            print(order_data)
+                            # print(order_data)
                             self.logger.info(data)
-                            self.logger.info(order_data)
+                            # self.logger.info(order_data)  # for privacy, not logging the order data, updated 01-13-2025
                         else:
                             # order failed
                             data = f"⚠️⚠️⚠️{get_current_time()}: Market Sell: {stock}, {quantity}, {price}, order failed, please check broker side or app, by: {called_by}⚠️⚠️⚠️"
@@ -200,9 +200,9 @@ class BaseBroker(ABC):
                         if ret_status_code == self.ret_ok_code:
                             data = f"{get_current_time()}: Limit Sell: {stock}, {quantity}, {price}, order placed successfully, please check account., by: {called_by}"
                             print(data)
-                            print(order_data)
+                            # print(order_data)
                             self.logger.info(data)
-                            self.logger.info(order_data)
+                            # self.logger.info(order_data)  # for privacy, not logging the order data, updated 01-13-2025
                         else:
                             # order failed
                             data = f"⚠️⚠️⚠️{get_current_time()}: Limit Sell: {stock}, {quantity}, {price}, order failed, please check broker side or app, by: {called_by}⚠️⚠️⚠️"

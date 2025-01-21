@@ -1,9 +1,10 @@
 """ Please don't change the code below, unless you know what you are doing """
 
-from trading_settings import LEVEL_POSITIONS, TRADING_LIST, TRADING_LEVEL, ENABLE_BUY_TQQQ, ENABLE_BUY_SOXL, \
+from trading_settings import TRADING_LIST, TRADING_LEVEL, ENABLE_BUY_TQQQ, ENABLE_BUY_SOXL, \
     ENABLE_BUY_IBIT, ENABLE_SELL_TQQQ, ENABLE_SELL_SOXL, ENABLE_SELL_IBIT, FUND_MODE, INITIAL_FUND_FOR_TQQQ, \
     INITIAL_FUND_FOR_SOXL, INITIAL_FUND_FOR_IBIT, QTY_MODE, ONE_PERCENT_TRADING_QTY_FOR_TQQQ, \
-    ONE_PERCENT_TRADING_QTY_FOR_SOXL, ONE_PERCENT_TRADING_QTY_FOR_IBIT
+    ONE_PERCENT_TRADING_QTY_FOR_SOXL, ONE_PERCENT_TRADING_QTY_FOR_IBIT, LEVEL_POSITIONS_TQQQ, LEVEL_POSITIONS_SOXL, \
+    LEVEL_POSITIONS_IBIT, LEVEL_POSITIONS_DEFAULT
 from utils.wall_api_client import print_status
 
 """
@@ -29,6 +30,13 @@ def decision_qty(json_data) -> tuple[int, float]:
     position_pct = 0
 
     # 0. # calculate the position percentage and check level
+    LEVEL_POSITIONS_MAP = {
+        "TQQQ": LEVEL_POSITIONS_TQQQ,
+        "SOXL": LEVEL_POSITIONS_SOXL,
+        "IBIT": LEVEL_POSITIONS_IBIT
+    }
+    LEVEL_POSITIONS = LEVEL_POSITIONS_MAP.get(stock, LEVEL_POSITIONS_DEFAULT)
+
     if level in LEVEL_POSITIONS:
         # calculate the position percentage
         if depth in LEVEL_POSITIONS[level]['depth']:
@@ -97,14 +105,14 @@ def decision_qty(json_data) -> tuple[int, float]:
     # 3. calculate the trading quantity
     # 3.1 calculate the trading quantity, FUND_MODE
     if FUND_MODE:
-        initial_fund = 0
+        initial_fund_map = {
+            "TQQQ": INITIAL_FUND_FOR_TQQQ,
+            "SOXL": INITIAL_FUND_FOR_SOXL,
+            "IBIT": INITIAL_FUND_FOR_IBIT
+        }
 
-        if stock == "TQQQ":
-            initial_fund = INITIAL_FUND_FOR_TQQQ
-        elif stock == "SOXL":
-            initial_fund = INITIAL_FUND_FOR_SOXL
-        elif stock == "IBIT":
-            initial_fund = INITIAL_FUND_FOR_IBIT
+        initial_fund = initial_fund_map.get(stock, 1)
+
         qty = int((position_pct * initial_fund) / price)
         # if qty < 1:
         #     qty = 1
@@ -117,13 +125,14 @@ def decision_qty(json_data) -> tuple[int, float]:
 
     # 3.2calculate the trading quantity, QTY_MODE
     elif QTY_MODE:
-        qty_one_percent = 1
-        if stock == "TQQQ":
-            qty_one_percent = ONE_PERCENT_TRADING_QTY_FOR_TQQQ
-        elif stock == "SOXL":
-            qty_one_percent = ONE_PERCENT_TRADING_QTY_FOR_SOXL
-        elif stock == "IBIT":
-            qty_one_percent = ONE_PERCENT_TRADING_QTY_FOR_IBIT
+        qty_one_percent_map = {
+            "TQQQ": ONE_PERCENT_TRADING_QTY_FOR_TQQQ,
+            "SOXL": ONE_PERCENT_TRADING_QTY_FOR_SOXL,
+            "IBIT": ONE_PERCENT_TRADING_QTY_FOR_IBIT
+        }
+
+        qty_one_percent = qty_one_percent_map.get(stock, 1)
+
         qty = int(position_pct * 100) * qty_one_percent
         # if qty < 1:
         #     qty = 1

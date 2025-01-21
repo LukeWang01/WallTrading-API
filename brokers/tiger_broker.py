@@ -20,6 +20,12 @@ from env._secrete import Tiger_account_number
 
 import time
 
+import nest_asyncio
+
+from utils.wall_api_client import print_status
+
+nest_asyncio.apply()
+
 """ ⬇️ Broker Setup ⬇️ """
 # Tiger API Docs: https://quant.itigerup.com/openapi/zh/python/overview/introduction.html
 '''
@@ -56,7 +62,8 @@ class TigerBroker(BaseBroker):
         while self.connection_attempts < self.max_attempts:
             try:
                 self.trade_client = TradeClient(self._get_client_config())
-                self.trade_client.get_managed_accounts(account=TIGER_ACCOUNT_NUMBER)  # if the execution fails, the Tiger SDK will raise an exception
+                self.trade_client.get_managed_accounts(
+                    account=TIGER_ACCOUNT_NUMBER)  # if the execution fails, the Tiger SDK will raise an exception
                 self.connected = True
                 self.connection_attempts = 0
                 # self.logger.info("Successfully connected to Tiger")
@@ -72,17 +79,19 @@ class TigerBroker(BaseBroker):
         self.connected = False
         self.logger.error("Failed to connect to Tiger after maximum attempts")
         return False
+
     def _get_client_config(self) -> TigerOpenClientConfig:
         client_config = TigerOpenClientConfig(props_path=TIGER_CONFIG_PATH)
         return client_config
-    
+
     def get_account_info(self) -> Tuple[int, Optional[dict]]:
         self.connect()
         if not self.connected:
             self.logger.error(f"Trader: Get Account Info failed: not connected")
-            print("Trader: Get Account Info failed: not connected")
+            # print("Trader: Get Account Info failed: not connected")
+            print_status("Trader", "Get Account Info failed: not connected", "ERROR")
             return self.ret_error_code, None
-        
+
         try:
             account_info = self.trade_client.get_managed_accounts(account=TIGER_ACCOUNT_NUMBER)
             self.logger.info(f"Retrieved account info: {account_info}")
@@ -90,12 +99,13 @@ class TigerBroker(BaseBroker):
         except Exception as e:
             self.logger.error(f"Error retrieving account info: {e}")
             return self.ret_ok_code, None
-        
+
     def get_cash_balance(self) -> Tuple[int, Optional[float]]:
         self.connect()
         if not self.connected:
             self.logger.error(f"Trader: Get Cash Balance failed: not connected")
-            print("Trader: Get Cash Balance failed: not connected")
+            # print("Trader: Get Cash Balance failed: not connected")
+            print_status("Trader", "Get Cash Balance failed: not connected", "ERROR")
             return self.ret_error_code, None
 
         try:
@@ -106,7 +116,7 @@ class TigerBroker(BaseBroker):
         except Exception as e:
             self.logger.error(f"Error retrieving cash balance: {e}")
             return self.ret_error_code, None
-    
+
     def get_cash_balance_number_only(self) -> Tuple[int, Optional[float]]:
         return self.get_cash_balance()
 
@@ -114,91 +124,105 @@ class TigerBroker(BaseBroker):
         self.connect()
         if not self.connected:
             self.logger.error(f"Trader: Get Positions failed: not connected")
-            print("Trader: Get Positions failed: not connected")
+            # print("Trader: Get Positions failed: not connected")
+            print_status("Trader", "Get Positions failed: not connected", "ERROR")
             return self.ret_error_code, None
 
         try:
-            positions = self.trade_client.get_positions(account=TIGER_ACCOUNT_NUMBER, sec_type=SecurityType.STK, currency=Currency.USD, market=Market.US, symbol=None)
+            positions = self.trade_client.get_positions(account=TIGER_ACCOUNT_NUMBER, sec_type=SecurityType.STK,
+                                                        currency=Currency.USD, market=Market.US, symbol=None)
             self.logger.info(f"Retrieved positions: {positions}")
             return self.ret_ok_code, positions
         except Exception as e:
             self.logger.error(f"Error retrieving positions: {e}")
             return self.ret_error_code, None
-        
+
     def get_positions_by_ticker(self, ticker) -> Tuple[int, Optional[int]]:
         self.connect()
         if not self.connected:
             self.logger.error(f"Trader: Get Positions by Ticker failed: not connected")
-            print("Trader: Get Positions by Ticker failed: not connected")
+            # print("Trader: Get Positions by Ticker failed: not connected")
+            print_status("Trader", "Get Positions by Ticker failed: not connected", "ERROR")
             return self.ret_error_code, None
 
         try:
-            position = self.trade_client.get_positions(account=TIGER_ACCOUNT_NUMBER, sec_type=SecurityType.STK, currency=Currency.USD, market=Market.US, symbol=ticker)
+            position = self.trade_client.get_positions(account=TIGER_ACCOUNT_NUMBER, sec_type=SecurityType.STK,
+                                                       currency=Currency.USD, market=Market.US, symbol=ticker)
             if not position:
-                return self.ret_error_code, 0.0
+                return self.ret_error_code, 0
             return self.ret_ok_code, position[0].salable_qty
         except Exception as e:
             self.logger.error(f"Error retrieving positions: {e}")
             return self.ret_error_code, None
-        
+
     def market_sell(self, stock: str, quantity: int, price: float) -> Tuple[int, None]:
         self.connect()
         if not self.connected:
             self.logger.error(f"Trader: Market Sell failed: not connected")
-            print("Trader: Market Sell failed: not connected")
+            # print("Trader: Market Sell failed: not connected")
+            print_status("Trader", "Market Sell failed: not connected", "ERROR")
             return self.ret_error_code, None
 
         try:
             contract = stock_contract(symbol=stock, currency='USD')
-            order = Order(account=TIGER_ACCOUNT_NUMBER, contract=contract, action='SELL', order_type='MKT', quantity=quantity)
+            order = Order(account=TIGER_ACCOUNT_NUMBER, contract=contract, action='SELL', order_type='MKT',
+                          quantity=quantity)
             oid = self.trade_client.place_order(order)
             return self.ret_ok_code, None
         except Exception as e:
             self.logger.error(f"Error placing market sell order: {e}")
             return self.ret_error_code, None
-    
+
     def market_buy(self, stock: str, quantity: int, price: float) -> Tuple[int, None]:
         self.connect()
         if not self.connected:
             self.logger.error(f"Trader: Market Buy failed: not connected")
-            print("Trader: Market Buy failed: not connected")
+            # print("Trader: Market Buy failed: not connected")
+            print_status("Trader", "Market Buy failed: not connected", "ERROR")
             return self.ret_error_code, None
 
         try:
             contract = stock_contract(symbol=stock, currency='USD')
-            order = Order(account=TIGER_ACCOUNT_NUMBER, contract=contract, action='BUY', order_type='MKT', quantity=quantity)
+            order = Order(account=TIGER_ACCOUNT_NUMBER, contract=contract, action='BUY', order_type='MKT',
+                          quantity=quantity)
             oid = self.trade_client.place_order(order)
             return self.ret_ok_code, None
         except Exception as e:
             self.logger.error(f"Error placing market buy order: {e}")
             return self.ret_error_code, None
-        
+
     def limit_sell(self, stock: str, quantity: int, price: float) -> Tuple[int, None]:
         self.connect()
         if not self.connected:
             self.logger.error(f"Trader: Limit Sell failed: not connected")
-            print("Trader: Limit Sell failed: not connected")
+            # print("Trader: Limit Sell failed: not connected")
+            print_status("Trader", "Limit Sell failed: not connected", "ERROR")
             return self.ret_error_code, None
 
         try:
             contract = stock_contract(symbol=stock, currency='USD')
-            order = Order(account=TIGER_ACCOUNT_NUMBER, contract=contract, action='SELL', order_type='LMT', quantity=quantity, limit_price=price, outside_rth=FILL_OUTSIDE_MARKET_HOURS, time_in_force='GTC')
+            order = Order(account=TIGER_ACCOUNT_NUMBER, contract=contract, action='SELL', order_type='LMT',
+                          quantity=quantity, limit_price=price, outside_rth=FILL_OUTSIDE_MARKET_HOURS,
+                          time_in_force='GTC')
             oid = self.trade_client.place_order(order)
             return self.ret_ok_code, None
         except Exception as e:
             self.logger.error(f"Error placing limit sell order: {e}")
             return self.ret_error_code, None
-        
+
     def limit_buy(self, stock: str, quantity: int, price: float) -> Tuple[int, None]:
         self.connect()
         if not self.connected:
             self.logger.error(f"Trader: Limit Buy failed: not connected")
-            print("Trader: Limit Buy failed: not connected")
+            # print("Trader: Limit Buy failed: not connected")
+            print_status("Trader", "Limit Buy failed: not connected", "ERROR")
             return self.ret_error_code, None
 
         try:
             contract = stock_contract(symbol=stock, currency='USD')
-            order = Order(account=TIGER_ACCOUNT_NUMBER, contract=contract, action='BUY', order_type='LMT', quantity=quantity, limit_price=price, outside_rth=FILL_OUTSIDE_MARKET_HOURS, time_in_force='GTC')
+            order = Order(account=TIGER_ACCOUNT_NUMBER, contract=contract, action='BUY', order_type='LMT',
+                          quantity=quantity, limit_price=price, outside_rth=FILL_OUTSIDE_MARKET_HOURS,
+                          time_in_force='GTC')
             oid = self.trade_client.place_order(order)
             return self.ret_ok_code, None
         except Exception as e:

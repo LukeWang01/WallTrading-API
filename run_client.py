@@ -9,6 +9,8 @@ from utils.local_decision import decision_qty
 from utils.wall_api_client import DataClient, print_status
 from utils.logger_config import setup_logger
 
+
+"""Section 0: Client initialization"""
 # Setup logger for the client runner
 logger = setup_logger('client_runner')
 
@@ -21,19 +23,24 @@ client_trader = BrokerFactory.get_broker(TRADING_BROKER)
 print_status("Client Runner", "Client Trader Initialized", "INFO")
 
 
+"""Section 1: Message Handler Code"""
+
+
 def trader_broker_setup_check() -> bool:
     try:
         # change the get cash to get account info, detailed information to check if the broker is set up correctly
         # updated 01-07-2025
         ret_code, data = client_trader.get_account_info()
         if ret_code == client_trader.ret_ok_code:
-            print_status("Client Runner", f"Broker setup successful - {data}", "SUCCESS")
+            # print_status("Client Runner", f"Broker setup successful - {data}", "SUCCESS")
+            # For privacy, do not print the account information
+            print_status("Client Runner", f"Broker setup successful", "SUCCESS")
             return True
         else:
             print_status("Client Runner", "Broker setup failed, please check password or connection", "ERROR")
             return False
     except Exception as error:
-        print_status("Client Runner", f"Broker setup failed: {error}", "ERROR")
+        print_status("Client Runner", f"Broker setup failed, External Error: {error}", "ERROR")
         return False
 
 
@@ -70,7 +77,7 @@ def handle_data(json_data):
         # test data received, no trade made
         print_status("Data Handler", "Test data received, no trade made", "INFO")
     else:
-        # trading data received, make trade
+        # 1. WallTrading Bot Mode: trading data received, make trade
         qty_num, qty_pct = decision_qty(json_data)
         print_status("Data Handler", f"Decision qty: {qty_num}, Decision original qty percent: {int(qty_pct * 100)} %", "INFO")
         called_by = "run_client.py - handle_data"
