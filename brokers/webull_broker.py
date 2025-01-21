@@ -72,7 +72,7 @@ class WebullBroker(BaseBroker):
         self.pending_orders_history = ''
 
         self.has_trader_info = False
-        self.log_in()
+        # self.log_in()
 
     def market_sell(self, stock: str, quantity: int, price: float):
         if not self.is_trader_logged_in():
