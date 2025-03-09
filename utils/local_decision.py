@@ -4,7 +4,7 @@ from trading_settings import TRADING_LIST, TRADING_LEVEL, ENABLE_BUY_TQQQ, ENABL
     ENABLE_BUY_IBIT, ENABLE_SELL_TQQQ, ENABLE_SELL_SOXL, ENABLE_SELL_IBIT, FUND_MODE, INITIAL_FUND_FOR_TQQQ, \
     INITIAL_FUND_FOR_SOXL, INITIAL_FUND_FOR_IBIT, QTY_MODE, ONE_PERCENT_TRADING_QTY_FOR_TQQQ, \
     ONE_PERCENT_TRADING_QTY_FOR_SOXL, ONE_PERCENT_TRADING_QTY_FOR_IBIT, LEVEL_POSITIONS_TQQQ, LEVEL_POSITIONS_SOXL, \
-    LEVEL_POSITIONS_IBIT, LEVEL_POSITIONS_DEFAULT
+    LEVEL_POSITIONS_IBIT, LEVEL_POSITIONS_DEFAULT, Bind_Depth_codeNum
 from utils.wall_api_client import print_status
 
 """
@@ -37,12 +37,23 @@ def decision_qty(json_data) -> tuple[int, float]:
     }
     LEVEL_POSITIONS = LEVEL_POSITIONS_MAP.get(stock, LEVEL_POSITIONS_DEFAULT)
 
+    # 0. Mapping the position percentage
     if level in LEVEL_POSITIONS:
-        # calculate the position percentage
+        depth_position = 0
+        code_position = 0
+
         if depth in LEVEL_POSITIONS[level]['depth']:
-            position_pct += LEVEL_POSITIONS[level]['depth'][depth]
+            depth_position = LEVEL_POSITIONS[level]['depth'][depth]
         if codeNum in LEVEL_POSITIONS[level]['code']:
-            position_pct += LEVEL_POSITIONS[level]['code'][codeNum]
+            if Bind_Depth_codeNum:
+                if depth_position > 0:
+                    code_position = LEVEL_POSITIONS[level]['code'][codeNum]
+                else:
+                    code_position = 0
+            else:
+                code_position = LEVEL_POSITIONS[level]['code'][codeNum]
+
+        position_pct = depth_position + code_position
 
         # check if the current level is enabled
         if not LEVEL_POSITIONS[level]['enable']:

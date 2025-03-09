@@ -12,6 +12,7 @@ from abc import ABC, abstractmethod
 from utils.logger_config import setup_logger
 from trading_settings import TRADING_LIST, TRADING_CONFIRMATION, TRADING_CASH_MARGIN_CONTROL, TRADING_CASH_THRESHOLD
 from utils.time_tool import is_market_hours, get_current_time
+from utils.wall_api_client import print_status
 
 
 class BaseBroker(ABC):
@@ -120,8 +121,9 @@ class BaseBroker(ABC):
                 # check the current buying power first
                 ret_status_code, current_cash = self.get_cash_balance_number_only()
                 if ret_status_code != self.ret_ok_code:
-                    data = f"⚠️⚠️⚠️{get_current_time()}: {stock}, Buy Failed. \nFailed to get the current cash balance, skipped, by: {called_by}⚠️⚠️⚠️"
-                    print(data)
+                    data = f"{get_current_time()}: {stock}, Buy Failed. \nFailed to get the current cash balance, skipped, by: {called_by}"
+                    # print(data)
+                    print_status("BaseBroker", data, "ERROR")
                     self.logger.error(data)
                     return
 
@@ -131,35 +133,42 @@ class BaseBroker(ABC):
                         ret_status_code, order_data = self.market_buy(stock, quantity, price)
                         if ret_status_code == self.ret_ok_code:
                             data = f"{get_current_time()}: Market Buy: {stock}, {quantity}, {price}, order placed successfully, please check account. by: {called_by}"
-                            print(data)
+                            # print(data)
+                            print_status("BaseBroker", data, "INFO")
                             # print(order_data)
                             self.logger.info(data)
                             # self.logger.info(order_data)  # for privacy, not logging the order data, updated 01-13-2025
                         else:
-                            data = f"⚠️⚠️⚠️{get_current_time()}: Market Buy: {stock}, {quantity}, {price} Failed, please check broker side or app, by: {called_by}⚠️⚠️⚠️"
-                            print(data)
-                            print(order_data)
-                            self.logger.error(data)
-                            self.logger.error(order_data)
+                            data = f"{get_current_time()}: Market Buy: {stock}, {quantity}, {price} Failed, please check broker side or app, by: {called_by}"
+                            # print(data)
+                            # print(order_data)
+                            print_status("BaseBroker", data, "ERROR")
+                            print_status("BaseBroker", order_data, "ERROR")
+                            # self.logger.error(data)
+                            self.logger.error(order_data)   # only log error msg, updated 03-09-2025
                     else:
                         # limit order extended hours
                         ret_status_code, order_data = self.limit_buy(stock, quantity, price)
                         if ret_status_code == self.ret_ok_code:
                             data = f"{get_current_time()}: Limit Buy: {stock}, {quantity}, {price}, order placed successfully, please check account, by: {called_by}"
-                            print(data)
+                            # print(data)
                             # print(order_data)
-                            self.logger.info(data)
+                            print_status("BaseBroker", data, "INFO")
+                            # self.logger.info(data)
                             # self.logger.info(order_data)  # for privacy, not logging the order data, updated 01-13-2025
                         else:
-                            data = f"⚠️⚠️⚠️{get_current_time()}: Limit Buy: {stock}, {quantity}, {price} Failed, please check broker side or app, by: {called_by}⚠️⚠️⚠️"
-                            print(data)
-                            print(order_data)
+                            data = f"{get_current_time()}: Limit Buy: {stock}, {quantity}, {price} Failed, please check broker side or app, by: {called_by}"
+                            # print(data)
+                            # print(order_data)
+                            print_status("BaseBroker", data, "ERROR")
+                            print_status("BaseBroker", order_data, "ERROR")
                             self.logger.error(data)
-                            self.logger.error(order_data)
+                            self.logger.error(order_data)   # only log error msg, updated 03-09-2025
                 else:
                     # order failed
-                    data = f"⚠️⚠️⚠️{get_current_time()}: Buy: {stock}, {quantity}, {price} Failed: no enough cash, below the threshold, or wrong margin settings, {current_cash} - {TRADING_CASH_THRESHOLD} - {quantity * price} - {TRADING_CASH_MARGIN_CONTROL}, by: {called_by}⚠️⚠️⚠️"
-                    print(data)
+                    data = f"{get_current_time()}: Buy: {stock}, {quantity}, {price} Failed: no enough cash, below the threshold, or wrong margin settings, {current_cash} - {TRADING_CASH_THRESHOLD} - {quantity * price} - {TRADING_CASH_MARGIN_CONTROL}, by: {called_by}"
+                    # print(data)
+                    print_status("BaseBroker", data, "ERROR")
                     self.logger.error(data)
 
             # Bear, sell order
@@ -167,15 +176,17 @@ class BaseBroker(ABC):
                 ok_to_sell = True
                 ret_status_code, position_by_ticker = self.get_positions_by_ticker(stock)
                 if ret_status_code != self.ret_ok_code:
-                    data = f"⚠️⚠️⚠️{get_current_time()}: Sell: {stock}, {quantity}, {price} failed, Failed to get the current position, skipped, by: {called_by}"
-                    print(data)
+                    data = f"{get_current_time()}: Sell: {stock}, {quantity}, {price} failed, Failed to get the current position, skipped, by: {called_by}"
+                    # print(data)
+                    print_status("BaseBroker", data, "ERROR")
                     self.logger.error(data)
                     return
 
                 if quantity >= position_by_ticker - 2:
                     # set the sell quantity at least less than the current position - 1
-                    data = f"⚠️⚠️⚠️{get_current_time()}: Sell: {stock}, {quantity}, {price} failed, no enough position to sell, skipped, {quantity} - {position_by_ticker}, by: {called_by}"
-                    print(data)
+                    data = f"{get_current_time()}: Sell: {stock}, {quantity}, {price} failed, no enough position to sell, skipped, {quantity} - {position_by_ticker}, by: {called_by}"
+                    # print(data)
+                    print_status("BaseBroker", data, "WARNING")
                     self.logger.warning(data)
                     ok_to_sell = False
 
@@ -185,34 +196,40 @@ class BaseBroker(ABC):
                         ret_status_code, order_data = self.market_sell(stock, quantity, price)
                         if ret_status_code == self.ret_ok_code:
                             data = f"{get_current_time()}: Market Sell: {stock}, {quantity}, {price}, order placed successfully, please check account., by: {called_by}"
-                            print(data)
+                            # print(data)
+                            print_status("BaseBroker", data, "INFO")
                             # print(order_data)
-                            self.logger.info(data)
+                            # self.logger.info(data)
                             # self.logger.info(order_data)  # for privacy, not logging the order data, updated 01-13-2025
                         else:
                             # order failed
-                            data = f"⚠️⚠️⚠️{get_current_time()}: Market Sell: {stock}, {quantity}, {price}, order failed, please check broker side or app, by: {called_by}⚠️⚠️⚠️"
-                            print(data)
-                            self.logger.warning(data)
+                            data = f"{get_current_time()}: Market Sell: {stock}, {quantity}, {price}, order failed, please check broker side or app, by: {called_by}"
+                            # print(data)
+                            print_status("BaseBroker", data, "ERROR")
+                            self.logger.warning(data)   # only log warning msg, updated 03-09-2025
                     else:
                         # limit order extended hours
                         ret_status_code, order_data = self.limit_sell(stock, quantity, price)
                         if ret_status_code == self.ret_ok_code:
                             data = f"{get_current_time()}: Limit Sell: {stock}, {quantity}, {price}, order placed successfully, please check account., by: {called_by}"
-                            print(data)
+                            # print(data)
+                            print_status("BaseBroker", data, "INFO")
                             # print(order_data)
-                            self.logger.info(data)
+                            # self.logger.info(data)
                             # self.logger.info(order_data)  # for privacy, not logging the order data, updated 01-13-2025
                         else:
                             # order failed
-                            data = f"⚠️⚠️⚠️{get_current_time()}: Limit Sell: {stock}, {quantity}, {price}, order failed, please check broker side or app, by: {called_by}⚠️⚠️⚠️"
-                            print(data)
-                            print(order_data)
+                            data = f"{get_current_time()}: Limit Sell: {stock}, {quantity}, {price}, order failed, please check broker side or app, by: {called_by}"
+                            # print(data)
+                            # print(order_data)
+                            print_status("BaseBroker", data, "ERROR")
+                            print_status("BaseBroker", order_data, "ERROR")
                             self.logger.warning(data)
-                            self.logger.warning(order_data)
+                            self.logger.warning(order_data)  # only log warning msg, updated 03-09-2025
 
         # if stock not in the trading list, skip the order
         else:
             data = f"{get_current_time()}: Stock({stock}) is not in the trading list:{TRADING_LIST}, or the trading is disable:{TRADING_CONFIRMATION}, skip the order, by: {called_by}"
-            print(data)
+            # print(data)
+            print_status("BaseBroker", data, "WARNING")
             self.logger.warning(data)

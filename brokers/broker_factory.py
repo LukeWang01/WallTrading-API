@@ -2,6 +2,7 @@ from typing import Dict
 
 from brokers.base_broker import BaseBroker
 from brokers.ibkr_broker import IBKRBroker
+from brokers.long_port_broket import LongPortBroker
 from brokers.moomoo_futu_broker import MooMooFutuBroker
 from brokers.schwab_broker import SchwabBroker
 from brokers.webull_broker import WebullBroker
@@ -26,7 +27,8 @@ class BrokerFactory:
             'MooMoo': MooMooFutuBroker,
             'Futu': MooMooFutuBroker,
             'SCHWAB': SchwabBroker,
-            'TIGER': TigerBroker
+            'TIGER': TigerBroker,
+            'LONGPORT': LongPortBroker
         }
 
         if broker_name not in broker_map:

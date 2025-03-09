@@ -257,7 +257,13 @@ class MooMooFutuBroker(BaseBroker):
             # get current position quantity
             print_status("MooMoo/Futu Trader", "Get Positions by Ticker failed", "ERROR")
             return self.ret_error_code, position_data
-        return self.ret_ok_code, position_data[ticker]["qty"]
+        try:
+            qty = position_data[ticker]["qty"]
+            return self.ret_ok_code, qty
+        except KeyError as e:
+            print_status("MooMoo/Futu Trader", "Get Positions by Ticker failed", "ERROR")
+            self.logger.warning(f"Trader: Get Positions by Ticker failed: {e}")
+            return self.ret_error_code, 0
 
     def get_cash_balance(self):
         acct_ret, acct_info = self.get_account_info()
@@ -265,6 +271,7 @@ class MooMooFutuBroker(BaseBroker):
             return self.ret_ok_code, acct_info['cash']
         else:
             print_status("MooMoo/Futu Trader", "Get Cash Balance failed", "ERROR")
+            self.logger.warning("Trader: Get Cash Balance failed")
             return self.ret_error_code, acct_info
 
     def get_cash_balance_number_only(self):
@@ -273,4 +280,5 @@ class MooMooFutuBroker(BaseBroker):
             return self.ret_ok_code, acct_info
         else:
             print_status("MooMoo/Futu Trader", "Get Cash Balance number only failed", "ERROR")
+            self.logger.warning("Trader: Get Cash Balance number only failed")
             return self.ret_error_code, acct_info
