@@ -1,7 +1,7 @@
 # Description: This file contains the settings for trading.
 
 
-""" Step 1: ‼️ Important. Set up the broker name ‼️ """
+""" Step 1: !!! Important. Set up the broker name !!! """
 TRADING_BROKER = 'MooMoo'  # set up the broker name based on the broker class name
 """
 'IBKR': IBKRBroker,
@@ -13,7 +13,7 @@ TRADING_BROKER = 'MooMoo'  # set up the broker name based on the broker class na
 """
 
 
-""" Step 2: ‼️ Important. Please choose qty decision mode, revise qty setting for each stock ‼️ """
+""" Step 2: !!! Important. Please choose qty decision mode, revise qty setting for each stock !!! """
 # Option 1: FUND_MODE, calculate the trading quantity based on the initial fund
 FUND_MODE = True  # default to True, set to False if you want to use fixed qty
 INITIAL_FUND_FOR_TQQQ = 1  # default to 1, set the initial trading fund for tqqq, it will be used for qty calculation
@@ -27,10 +27,12 @@ ONE_PERCENT_TRADING_QTY_FOR_SOXL = 1  # default to 1, set the trading quantity f
 ONE_PERCENT_TRADING_QTY_FOR_IBIT = 1  # default to 1, set the trading quantity for 1% of the initial fund
 
 
-""" Step 3: ‼️ Important. Please choose which level and which ticker you want to trade ‼️ """
+""" Step 3: !!! Important. Please choose which level and which ticker you want to trade !!! """
 TRADING_LIST = ['TQQQ', 'SOXL', 'IBIT']  # set the trading list, delete the stock if you don't want to trade
 TRADING_LEVEL = ['L0', 'L1', 'L2', 'L3', 'L4']  # set the trading level, delete the level if you don't want to trade
 
+
+""" Please don't change the code below, unless you know what you are doing """
 
 """ (Optional): Account settings, don't change the default setting unless you know what you are doing """
 TRADING_CONFIRMATION = True  # default to True, set to False if you want to stop trading
@@ -39,9 +41,8 @@ TRADING_CASH_MARGIN_CONTROL = True  # default to True, set to False if you want 
 TRADING_ALLOW_PRE_POST_MARKET_ORDER = True  # default to True, set to False if you don't want to trade in pre/post market
 
 
-""" Please don't change the code below, unless you know what you are doing """
 
-""" 1. Specific trading direction control settings """
+""" (Optional): 1. Specific trading direction control settings """
 # buy side
 ENABLE_BUY_TQQQ = True  # default to True, set to False if you don't want to buy TQQQ
 ENABLE_BUY_SOXL = True  # default to True, set to False if you don't want to buy SOXL
@@ -51,11 +52,13 @@ ENABLE_SELL_TQQQ = True  # default to True, set to False if you don't want to se
 ENABLE_SELL_SOXL = True  # default to True, set to False if you don't want to sell SOXL
 ENABLE_SELL_IBIT = True  # default to True, set to False if you don't want to sell IBIT
 
-""" 2. Specific Trading Control Settings """
+""" (Optional): 2. Specific Trading Control Settings: Level, Depth, CodeNum """
 # this is the default setting, which corresponds to the trading strategy for WallTrading Bot
 # please don't change the default setting, unless you know what you are doing
 # please contact the dev team for any questions
 # trading position control per stock ticker:
+
+Bind_Depth_codeNum = False  # Default to False, set to True if you want to bind the depth and codeNum
 
 LEVEL_POSITIONS_TQQQ = {
     0: {  # L0

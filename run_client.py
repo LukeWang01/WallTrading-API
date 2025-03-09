@@ -112,7 +112,7 @@ async def main():
     global client
 
     logger.info("Starting client process")
-    print_status("Client Runner", "Starting client process", "INFO")
+    # print_status("Client Runner", "Starting client process", "INFO")
 
     # Initialize client
     client = DataClient(

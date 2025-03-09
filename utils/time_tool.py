@@ -47,5 +47,5 @@ def is_market_and_extended_hours():
 
 def get_current_time():
     current_time = datetime.datetime.now()
-    formatted_time = current_time.strftime('%Y-%m-%d %H:%M:%S') + '  |  ' + f'{current_time.microsecond // 1000:03d} ms'
+    formatted_time = current_time.strftime('%Y-%m-%d %H:%M:%S') + ' ' + f'{current_time.microsecond // 1000:03d} ms'
     return formatted_time
