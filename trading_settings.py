@@ -2,14 +2,15 @@
 
 
 """ Step 1: !!! Important. Set up the broker name !!! """
-TRADING_BROKER = 'MooMoo'  # set up the broker name based on the broker class name
+TRADING_BROKER = 'LONGPORT'  # set up the broker name based on the broker class name
 """
 'IBKR': IBKRBroker,
 'WEBULL': WebullBroker,
 'MooMoo': MooMooFutuBroker,
 'Futu': MooMooFutuBroker,
 'SCHWAB': SchwabBroker,
-'TIGER': TigerBroker
+'TIGER': TigerBroker,
+'LONGPORT': LongPortBroker
 """
 
 
