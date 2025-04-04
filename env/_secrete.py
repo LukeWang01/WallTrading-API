@@ -35,8 +35,8 @@ Tiger_account_number = '123456'
 
 
 """ LongPort trading setup """
-LongPort_app_key = "YOUR_APP_KEY",
-LongPort_app_secret = "YOUR_APP_SECRET",
+LongPort_app_key = "YOUR_APP_KEY"
+LongPort_app_secret = "YOUR_APP_SECRET"
 LongPort_access_token = "YOUR_ACCESS_TOKEN"
 
 
