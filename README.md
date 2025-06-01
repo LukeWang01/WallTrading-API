@@ -3,10 +3,12 @@
    WallTrading-API
 </h1>
 <h4 align="center" style="margin: 0 auto 0 auto;">
-Developed by: (C) 2024 LookAtWallStreet
+   
+Auto sync all trading from the WallTrading Bot to your own account. Also provide the pre-build functions to market buy/sell, limit buy/sell, support MooMoo/Futu, IBKR, Schwab, Webull, Tiger
+
 </h4>
 
-<br>
+
 
 ## Instructions:
 
@@ -61,8 +63,14 @@ or, just download the zip file from the repository.
 
 <br>
 
+#### 7.  Questions & Support via Discord:
+- https://discord.gg/9uUpjyyqkZ
+
+
+<br>
+
 ## More Info:
-1. Get more info from [LookAtWallStreet](https://www.patreon.com/LookAtWallStreet) on Patreon.
+1. Subscribe the Bot and get start: [LookAtWallStreet](https://buy.stripe.com/3cscNB4zDbaU4mY8ww) on Scripe.
 
 2. Visit the [LookAtWallStreet Home Page](https://lookatwallstreet.notion.site/11d6853c146c800992f2dcb48d18516d)
 
@@ -115,4 +123,6 @@ https://j.moomoo.com/011Pu5
 - Luke
 - Angus
 
-Dev Version: 0.1.6
+Dev Version: 0.1.8
+
+Developed by: (C) 2025 LookAtWallStreet
