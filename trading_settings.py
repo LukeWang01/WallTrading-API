@@ -170,7 +170,7 @@ LEVEL_POSITIONS_DEFAULT = {
         'enable': True  # default to True, set to False if you don't want to trade at this level
     },
     4: {  # L4
-        'depth': {0: 0.15, 1: 0.22, 2: 0.22, 3: 0.25, 4: 0.25, 5: 0.00, 6: 0.00, 7: 0.00, 8: 0.00, 9: 0.00, 10: 0.00},
+        'depth': {0: 0.15, 1: 0.22, 2: 0.00, 3: 0.00, 4: 0.00, 5: 0.00, 6: 0.00, 7: 0.00, 8: 0.00, 9: 0.00, 10: 0.00},
         'code': {3: 0.22},
         'enable': True  # default to True, set to False if you don't want to trade at this level
     }
