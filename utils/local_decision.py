@@ -27,6 +27,12 @@ def decision_qty(json_data) -> tuple[int, float]:
     stock = json_data["ticker"]
     direction = json_data["direction"]
 
+    bind_Depth_codeNum_local = Bind_Depth_codeNum  # use the global setting
+
+    if level == 4:
+        # if level is 4, set the Bind_Depth_codeNum to False
+        bind_Depth_codeNum_local = False
+
     position_pct = 0
 
     # 0. # calculate the position percentage and check level
@@ -45,7 +51,7 @@ def decision_qty(json_data) -> tuple[int, float]:
         if depth in LEVEL_POSITIONS[level]['depth']:
             depth_position = LEVEL_POSITIONS[level]['depth'][depth]
         if codeNum in LEVEL_POSITIONS[level]['code']:
-            if Bind_Depth_codeNum:
+            if bind_Depth_codeNum_local:
                 if depth_position > 0:
                     code_position = LEVEL_POSITIONS[level]['code'][codeNum]
                 else:
