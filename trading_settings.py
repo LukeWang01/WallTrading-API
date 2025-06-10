@@ -59,7 +59,7 @@ ENABLE_SELL_IBIT = True  # default to True, set to False if you don't want to se
 # please contact the dev team for any questions
 # trading position control per stock ticker:
 
-Bind_Depth_codeNum = False  # Default to False, set to True if you want to bind the depth and codeNum
+Bind_Depth_codeNum = True  # Default to True, set to False if you want more tradings and know what you are doing
 
 LEVEL_POSITIONS_TQQQ = {
     0: {  # L0
@@ -83,7 +83,7 @@ LEVEL_POSITIONS_TQQQ = {
         'enable': True  # default to True, set to False if you don't want to trade at this level
     },
     4: {  # L4
-        'depth': {0: 0.15, 1: 0.22, 2: 0.22, 3: 0.25, 4: 0.25, 5: 0.00, 6: 0.00, 7: 0.00, 8: 0.00, 9: 0.00, 10: 0.00},
+        'depth': {0: 0.15, 1: 0.22, 2: 0.00, 3: 0.00, 4: 0.00, 5: 0.00, 6: 0.00, 7: 0.00, 8: 0.00, 9: 0.00, 10: 0.00},
         'code': {3: 0.22},
         'enable': True  # default to True, set to False if you don't want to trade at this level
     }
@@ -112,7 +112,7 @@ LEVEL_POSITIONS_SOXL = {
         'enable': True  # default to True, set to False if you don't want to trade at this level
     },
     4: {  # L4
-        'depth': {0: 0.15, 1: 0.22, 2: 0.22, 3: 0.25, 4: 0.25, 5: 0.00, 6: 0.00, 7: 0.00, 8: 0.00, 9: 0.00, 10: 0.00},
+        'depth': {0: 0.15, 1: 0.22, 2: 0.00, 3: 0.00, 4: 0.00, 5: 0.00, 6: 0.00, 7: 0.00, 8: 0.00, 9: 0.00, 10: 0.00},
         'code': {3: 0.22},
         'enable': True  # default to True, set to False if you don't want to trade at this level
     }
@@ -141,7 +141,7 @@ LEVEL_POSITIONS_IBIT = {
         'enable': True  # default to True, set to False if you don't want to trade at this level
     },
     4: {  # L4
-        'depth': {0: 0.15, 1: 0.22, 2: 0.22, 3: 0.25, 4: 0.25, 5: 0.00, 6: 0.00, 7: 0.00, 8: 0.00, 9: 0.00, 10: 0.00},
+        'depth': {0: 0.15, 1: 0.22, 2: 0.00, 3: 0.00, 4: 0.00, 5: 0.00, 6: 0.00, 7: 0.00, 8: 0.00, 9: 0.00, 10: 0.00},
         'code': {3: 0.22},
         'enable': True  # default to True, set to False if you don't want to trade at this level
     }
