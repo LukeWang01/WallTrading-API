@@ -74,6 +74,8 @@ or, just download the zip file from the repository.
 
 2. Visit the [LookAtWallStreet Home Page](https://lookatwallstreet.notion.site/11d6853c146c800992f2dcb48d18516d)
 
+3. [Donate via Stripe](https://donate.stripe.com/cNi28s1t1agzgDKdbH7AI09)
+
 
 
 <br>
